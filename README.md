@@ -41,17 +41,17 @@ guiguzi/
 
 **Linux / macOS:**
 ```bash
-curl -fsSL https://guiguzi.ai/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hyhx-ai/guiguzi/main/scripts/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-iwr -useb https://guiguzi.ai/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/hyhx-ai/guiguzi/main/scripts/install.ps1 | iex
 ```
 
 **本地前缀安装（不需要系统 Node.js）:**
 ```bash
-curl -fsSL https://guiguzi.ai/install-cli.sh | bash
+curl -fsSL https://raw.githubusercontent.com/hyhx-ai/guiguzi/main/scripts/install-cli.sh | bash
 ```
 
 ### npm 安装

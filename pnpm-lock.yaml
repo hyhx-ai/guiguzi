@@ -67,6 +67,9 @@ importers:
       '@guiguzi/tui':
         specifier: workspace:*
         version: link:../nova-tui
+      '@guiguzi/web':
+        specifier: workspace:*
+        version: link:../nova-web
       commander:
         specifier: ^13.0.0
         version: 13.1.0
@@ -182,6 +185,9 @@ importers:
       '@guiguzi/router':
         specifier: workspace:*
         version: link:../nova-router
+      '@hono/node-server':
+        specifier: ^1.14.0
+        version: 1.19.14(hono@4.12.27)
       hono:
         specifier: ^4.7.0
         version: 4.12.27

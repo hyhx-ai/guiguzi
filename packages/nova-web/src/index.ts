@@ -36,6 +36,9 @@ export function getDashboardStats(router: AIRouter): DashboardStats {
 export { createConsoleApp } from "./console.js";
 export type { ConsoleAppConfig } from "./console.js";
 
+export { startConsoleServer } from "./server.js";
+export type { ConsoleServerOptions } from "./server.js";
+
 export { SessionManager } from "./sessions.js";
 export type { Session, ChatMessage } from "./sessions.js";
 

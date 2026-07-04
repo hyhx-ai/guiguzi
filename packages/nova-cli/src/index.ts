@@ -6,6 +6,7 @@ import { Command } from "commander";
 import { AIRouter } from "@guiguzi/router";
 import { Agent } from "@guiguzi/agent-core";
 import { autoConfigureRegistry, type ModelInfo } from "@guiguzi/ai";
+import { startConsoleServer } from "@guiguzi/web";
 import { renderAgentApp } from "./render.js";
 
 const VERSION = "0.1.0-alpha";
@@ -258,14 +259,54 @@ program
 
       // Step 2: Model selection
       console.log("\n── Step 2: Default Model ──");
-      const defaultModels: Record<string, string> = {
-        anthropic: "claude-4-sonnet",
-        openai: "gpt-4o",
-        google: "gemini-2.5-pro",
-        ollama: "llama4",
-        custom: "default",
-      };
-      const model = await ask("Default model", defaultModels[provider]);
+
+      // Detect available models from configured providers
+      const modelRegistry = autoConfigureRegistry();
+      const detectedProviders = modelRegistry.getEnabled();
+      const detectedModels = await modelRegistry.getAllModels();
+
+      let model: string;
+
+      if (detectedModels.length > 0) {
+        console.log("  Detected models:");
+        detectedModels.forEach((m: ModelInfo, i: number) => {
+          console.log(`    ${i + 1}. ${m.id} (${m.name})`);
+          console.log(`       Context: ${(m.contextWindow / 1000).toFixed(0)}k | Quality: ${m.quality}/100 | Speed: ${m.speed}/100`);
+        });
+        console.log(`    0. Skip (use default)`);
+        const modelChoice = await ask("Select model number", "0");
+
+        if (modelChoice === "0" || modelChoice === "") {
+          const defaultModels: Record<string, string> = {
+            anthropic: "claude-4-sonnet",
+            openai: "gpt-4o",
+            google: "gemini-2.5-pro",
+            ollama: "llama4",
+            custom: "default",
+          };
+          model = defaultModels[provider] ?? "default";
+          console.log(`  Using default: ${model}`);
+        } else {
+          const idx = parseInt(modelChoice, 10) - 1;
+          const selected = detectedModels[idx];
+          if (idx >= 0 && selected) {
+            model = selected.id;
+            console.log(`  Selected: ${model}`);
+          } else {
+            model = "default";
+            console.log("  Invalid selection, using default");
+          }
+        }
+      } else {
+        const defaultModels: Record<string, string> = {
+          anthropic: "claude-4-sonnet",
+          openai: "gpt-4o",
+          google: "gemini-2.5-pro",
+          ollama: "llama4",
+          custom: "default",
+        };
+        model = await ask("Default model", defaultModels[provider]);
+      }
 
       // Step 3: Workspace
       console.log("\n── Step 3: Workspace ──");
@@ -387,6 +428,75 @@ WantedBy=default.target
     }
 
     console.log("\n⟨guiguzi⟩ Setup complete! Run 'guiguzi agent' to start.");
+  });
+
+// ─── guiguzi console ─── Web management console
+program
+  .command("console")
+  .description("Start the web management console")
+  .option("-p, --port <port>", "Port to listen on", "3000")
+  .option("-h, --host <host>", "Host to bind to", "0.0.0.0")
+  .action(async (options) => {
+    console.log(`\n⟨guiguzi⟩ Starting Web Console...\n`);
+
+    const registry = autoConfigureRegistry();
+    const router = new AIRouter({ strategy: "hybrid" });
+    await router.initialize();
+
+    const port = parseInt(options.port, 10);
+    const host = options.host;
+
+    await startConsoleServer({ router, host, port, version: VERSION });
+
+    const providers = registry.getEnabled();
+    const models = await registry.getAllModels();
+    console.log(`⟨guiguzi⟩ ${providers.length} providers, ${models.length} models`);
+    console.log(`⟨guiguzi⟩ Press Ctrl+C to stop\n`);
+  });
+
+// ─── guiguzi models ─── Model configuration
+program
+  .command("models")
+  .description("List and configure available AI models")
+  .option("--json", "Output as JSON")
+  .action(async (options) => {
+    const registry = autoConfigureRegistry();
+    const providers = registry.getEnabled();
+
+    if (providers.length === 0) {
+      console.log("⟨guiguzi⟩ No AI providers configured.");
+      console.log("  Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or start Ollama.");
+      console.log("  Run 'guiguzi onboard' to configure.");
+      return;
+    }
+
+    const allModels = await registry.getAllModels();
+
+    if (options.json) {
+      console.log(JSON.stringify(allModels, null, 2));
+      return;
+    }
+
+    console.log("\n⟨guiguzi⟩ Available Models\n");
+
+    // Group by provider
+    for (const provider of providers) {
+      const available = await provider.isAvailable();
+      const status = available ? "\x1b[32m●\x1b[0m" : "\x1b[31m●\x1b[0m";
+      console.log(`  ${status} ${provider.name}`);
+
+      for (const model of provider.models) {
+        const caps = model.capabilities.slice(0, 3).join(", ");
+        console.log(`     ${model.id}`);
+        console.log(`       Context: ${(model.contextWindow / 1000).toFixed(0)}k | $${model.costPerMInput.toFixed(2)}/$${model.costPerMOutput.toFixed(2)} per 1M tokens`);
+        console.log(`       Quality: ${model.quality}/100 | Speed: ${model.speed}/100 | ${caps}`);
+      }
+      console.log();
+    }
+
+    console.log(`  Total: ${allModels.length} models across ${providers.length} providers`);
+    console.log("\n  Tip: Use 'guiguzi agent -m <model>' to force a specific model.");
+    console.log("  Tip: Use 'guiguzi onboard' to reconfigure providers.\n");
   });
 
 program.parse();

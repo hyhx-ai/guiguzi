@@ -1,6 +1,6 @@
 // ─── Agent Core Types ───
 
-import type { Message, ToolCall, TaskType } from "@novaclaw/ai";
+import type { Message, ToolCall, TaskType } from "@guiguzi/ai";
 
 export interface AgentConfig {
   systemPrompt?: string;

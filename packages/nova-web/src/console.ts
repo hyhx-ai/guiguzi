@@ -1,4 +1,4 @@
-// ─── NovaClaw Console Server ───
+// ─── Guiguzi Console Server ───
 // Serves the management dashboard HTML and API endpoints
 
 import { Hono } from "hono";
@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { randomUUID } from "node:crypto";
-import type { AIRouter, RouteEvent } from "@novaclaw/router";
+import type { AIRouter, RouteEvent } from "@guiguzi/router";
 import { getDashboardStats, generateRouterVisualization } from "./index.js";
 import { SessionManager } from "./sessions.js";
 import { ProviderConfigManager } from "./providers.js";
@@ -48,8 +48,8 @@ export function createConsoleApp(config: ConsoleAppConfig): Hono {
     const html = getConsoleHtml()
       .replace("v0.1.0", `v${version}`)
       .replace(
-        "NovaClaw v0.1.0-alpha",
-        `NovaClaw v${version}`,
+        "Guiguzi v0.1.0-alpha",
+        `Guiguzi v${version}`,
       );
     return c.html(html);
   });

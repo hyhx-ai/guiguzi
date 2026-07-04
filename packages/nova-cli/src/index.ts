@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// ─── NovaClaw CLI ───
+// ─── Guiguzi CLI ───
 // Terminal Coding Agent entry point
 
 import { Command } from "commander";
-import { AIRouter } from "@novaclaw/router";
-import { Agent } from "@novaclaw/agent-core";
-import { autoConfigureRegistry, type ModelInfo } from "@novaclaw/ai";
+import { AIRouter } from "@guiguzi/router";
+import { Agent } from "@guiguzi/agent-core";
+import { autoConfigureRegistry, type ModelInfo } from "@guiguzi/ai";
 import { renderAgentApp } from "./render.js";
 
 const VERSION = "0.1.0-alpha";
@@ -14,7 +14,7 @@ const program = new Command();
 
 program
   .name("nova")
-  .description("NovaClaw - AI Coding Agent with Intelligent Router")
+  .description("Guiguzi - AI Coding Agent with Intelligent Router")
   .version(VERSION);
 
 // ─── nova agent ─── Interactive terminal agent
@@ -26,7 +26,7 @@ program
   .option("-w, --workspace <path>", "Working directory", process.cwd())
   .option("--system-prompt <prompt>", "Custom system prompt")
   .action(async (options) => {
-    console.log(`\n⟨nova⟩ NovaClaw v${VERSION}`);
+    console.log(`\n⟨nova⟩ Guiguzi v${VERSION}`);
     console.log("⟨nova⟩ Initializing...\n");
 
     // Auto-configure providers from environment
@@ -113,11 +113,11 @@ program
 // ─── nova init ─── Project initialization
 program
   .command("init")
-  .description("Initialize NovaClaw in a project directory")
+  .description("Initialize Guiguzi in a project directory")
   .option("--non-interactive", "Skip interactive prompts")
   .option("--accept-risk", "Accept risk disclaimer")
   .action(async (options) => {
-    console.log("⟨nova⟩ Initializing NovaClaw...\n");
+    console.log("⟨nova⟩ Initializing Guiguzi...\n");
 
     const { writeFile, mkdir } = await import("node:fs/promises");
     const { join } = await import("node:path");
@@ -144,7 +144,7 @@ program
     );
 
     console.log("✓ Created .nova/config.json");
-    console.log("✓ NovaClaw initialized!");
+    console.log("✓ Guiguzi initialized!");
     console.log("\nNext steps:");
     console.log("  1. Set API keys: export OPENAI_API_KEY=... or export ANTHROPIC_API_KEY=...");
     console.log("  2. Start agent: nova agent");
@@ -169,7 +169,7 @@ program
         break;
       case "install":
         console.log("⟨nova⟩ Installing gateway as system service...");
-        console.log("✓ Run: sudo systemctl enable --now novaclaw-gateway");
+        console.log("✓ Run: sudo systemctl enable --now guiguzi-gateway");
         break;
       case "status":
         console.log("⟨nova⟩ Gateway status: running");

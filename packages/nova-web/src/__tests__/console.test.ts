@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { createConsoleApp } from "../console.js";
-import { AIRouter } from "@novaclaw/router";
-import type { RouteEvent } from "@novaclaw/router";
+import { AIRouter } from "@guiguzi/router";
+import type { RouteEvent } from "@guiguzi/router";
 
 function makeTestRouter() {
   return new AIRouter({ strategy: "hybrid" });

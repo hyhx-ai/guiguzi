@@ -10,7 +10,7 @@ describe("ConversationStore", () => {
   let store: ConversationStore;
 
   beforeEach(async () => {
-    storeDir = await mkdtemp(join(tmpdir(), "novaclaw-persist-test-"));
+    storeDir = await mkdtemp(join(tmpdir(), "guiguzi-persist-test-"));
     store = new ConversationStore({ storageDir: storeDir, format: "json" });
   });
 

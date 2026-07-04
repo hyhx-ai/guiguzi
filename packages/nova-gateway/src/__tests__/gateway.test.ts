@@ -112,13 +112,13 @@ describe("GatewayMessage", () => {
       id: "msg-001",
       channel: "feishu",
       peer: { kind: "group", id: "g-1" },
-      content: "Hello NovaClaw",
+      content: "Hello Guiguzi",
       sender: "user-1",
       timestamp: new Date("2026-01-01T00:00:00Z"),
     };
     expect(msg.id).toBe("msg-001");
     expect(msg.channel).toBe("feishu");
-    expect(msg.content).toBe("Hello NovaClaw");
+    expect(msg.content).toBe("Hello Guiguzi");
     expect(msg.timestamp).toBeInstanceOf(Date);
   });
 });

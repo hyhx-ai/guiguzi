@@ -1,4 +1,4 @@
-# NovaClaw Docker Compose
+# Guiguzi Docker Compose
 # Gateway + Ollama (local AI) stack
 #
 # Usage:
@@ -6,10 +6,10 @@
 #   docker compose up -d
 
 services:
-  # ─── NovaClaw Gateway ───
+  # ─── Guiguzi Gateway ───
   gateway:
     build: .
-    container_name: novaclaw-gateway
+    container_name: guiguzi-gateway
     restart: unless-stopped
     ports:
       - "${GATEWAY_PORT:-18789}:18789"
@@ -18,8 +18,8 @@ services:
       - NODE_ENV=production
       - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
-      - gateway-data:/var/lib/novaclaw
-      - gateway-logs:/var/log/novaclaw
+      - gateway-data:/var/lib/guiguzi
+      - gateway-logs:/var/log/guiguzi
     depends_on:
       ollama:
         condition: service_healthy
@@ -32,7 +32,7 @@ services:
   # ─── Ollama (Local AI) ───
   ollama:
     image: ollama/ollama:latest
-    container_name: novaclaw-ollama
+    container_name: guiguzi-ollama
     restart: unless-stopped
     ports:
       - "11434:11434"
@@ -55,7 +55,7 @@ services:
   # ─── Ollama Model Puller (one-shot) ───
   ollama-pull:
     image: ollama/ollama:latest
-    container_name: novaclaw-ollama-pull
+    container_name: guiguzi-ollama-pull
     depends_on:
       ollama:
         condition: service_healthy

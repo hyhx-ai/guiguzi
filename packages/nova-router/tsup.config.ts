@@ -8,5 +8,5 @@ export default defineConfig({
   clean: true,
   target: "node22",
   splitting: false,
-  external: [/^@novaclaw\//],
+  external: [/^@guiguzi\//],
 });

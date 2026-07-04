@@ -34,7 +34,7 @@ describe("render module", () => {
 
 describe("TUI component integration", () => {
   it("should import TUI components used by AgentApp", async () => {
-    const tui = await import("@novaclaw/tui");
+    const tui = await import("@guiguzi/tui");
     expect(tui.ChatView).toBeDefined();
     expect(tui.StatusBar).toBeDefined();
     expect(tui.RouterPanel).toBeDefined();

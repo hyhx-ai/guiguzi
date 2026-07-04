@@ -1,7 +1,7 @@
 {
-  "name": "@novaclaw/web",
+  "name": "@guiguzi/web",
   "version": "0.1.0-alpha",
-  "description": "NovaClaw Web Management Console",
+  "description": "Guiguzi Web Management Console",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,8 +19,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@novaclaw/agent-core": "workspace:*",
-    "@novaclaw/router": "workspace:*",
+    "@guiguzi/agent-core": "workspace:*",
+    "@guiguzi/router": "workspace:*",
     "hono": "^4.7.0"
   },
   "devDependencies": {

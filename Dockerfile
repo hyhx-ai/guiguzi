@@ -1,4 +1,4 @@
-# ─── NovaClaw Multi-Stage Docker Build ───
+# ─── Guiguzi Multi-Stage Docker Build ───
 # Supports both amd64 and arm64 (for Raspberry Pi / ARM servers)
 
 # ─── Stage 1: Build ───
@@ -30,14 +30,14 @@ RUN pnpm build
 # ─── Stage 2: Production ───
 FROM node:22-slim AS production
 
-LABEL org.opencontainers.image.title="NovaClaw Gateway"
+LABEL org.opencontainers.image.title="Guiguzi Gateway"
 LABEL org.opencontainers.image.description="AI Coding Agent with Intelligent Router - Multi-Channel Gateway"
 LABEL org.opencontainers.image.licenses="MIT"
 
 RUN corepack enable && corepack prepare pnpm@11.9.0 --activate
 
 # Create non-root user
-RUN groupadd -r novaclaw && useradd -r -g novaclaw -d /app -s /sbin/nologin novaclaw
+RUN groupadd -r guiguzi && useradd -r -g guiguzi -d /app -s /sbin/nologin guiguzi
 
 WORKDIR /app
 
@@ -64,10 +64,10 @@ COPY --from=builder /app/packages/nova-sdk/package.json   packages/nova-sdk/pack
 RUN pnpm install --prod --frozen-lockfile
 
 # Data directories
-RUN mkdir -p /var/lib/novaclaw /var/log/novaclaw && \
-    chown -R novaclaw:novaclaw /app /var/lib/novaclaw /var/log/novaclaw
+RUN mkdir -p /var/lib/guiguzi /var/log/guiguzi && \
+    chown -R guiguzi:guiguzi /app /var/lib/guiguzi /var/log/guiguzi
 
-USER novaclaw
+USER guiguzi
 
 # Gateway port
 EXPOSE 18789

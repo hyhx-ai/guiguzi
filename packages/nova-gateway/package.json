@@ -1,7 +1,7 @@
 {
-  "name": "@novaclaw/gateway",
+  "name": "@guiguzi/gateway",
   "version": "0.1.0-alpha",
-  "description": "NovaClaw Multi-Channel Gateway - Feishu, Slack, Discord, Web adapter",
+  "description": "Guiguzi Multi-Channel Gateway - Feishu, Slack, Discord, Web adapter",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,9 +19,9 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@novaclaw/ai": "workspace:*",
-    "@novaclaw/router": "workspace:*",
-    "@novaclaw/agent-core": "workspace:*",
+    "@guiguzi/ai": "workspace:*",
+    "@guiguzi/router": "workspace:*",
+    "@guiguzi/agent-core": "workspace:*",
     "hono": "^4.7.0",
     "@hono/node-server": "^1.13.0"
   },

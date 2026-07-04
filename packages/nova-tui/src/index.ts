@@ -1,4 +1,4 @@
-// ─── NovaClaw TUI ───
+// ─── Guiguzi TUI ───
 // Terminal UI components (placeholder for Ink-based TUI)
 
 export interface Theme {

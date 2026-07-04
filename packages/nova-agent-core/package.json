@@ -1,7 +1,7 @@
 {
-  "name": "@novaclaw/agent-core",
+  "name": "@guiguzi/agent-core",
   "version": "0.1.0-alpha",
-  "description": "NovaClaw Agent runtime - tool orchestration, tree-structured conversations, context compression",
+  "description": "Guiguzi Agent runtime - tool orchestration, tree-structured conversations, context compression",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,12 +19,12 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@novaclaw/ai": "workspace:*",
-    "@novaclaw/router": "workspace:*"
+    "@guiguzi/ai": "workspace:*",
+    "@guiguzi/router": "workspace:*"
   },
   "devDependencies": {
-    "@novaclaw/sdk": "workspace:*",
-    "@novaclaw/gateway": "workspace:*",
+    "@guiguzi/sdk": "workspace:*",
+    "@guiguzi/gateway": "workspace:*",
     "tsup": "^8.4.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

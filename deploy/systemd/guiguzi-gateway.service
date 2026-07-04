@@ -1,20 +1,20 @@
 [Unit]
-Description=NovaClaw Multi-Channel Gateway
-Documentation=https://github.com/novaclaw/novaclaw
+Description=Guiguzi Multi-Channel Gateway
+Documentation=https://github.com/guiguzi/guiguzi
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-User=novaclaw
-Group=novaclaw
-ExecStart=/usr/bin/node /opt/novaclaw/packages/nova-gateway/dist/index.js
-WorkingDirectory=/opt/novaclaw
+User=guiguzi
+Group=guiguzi
+ExecStart=/usr/bin/node /opt/guiguzi/packages/nova-gateway/dist/index.js
+WorkingDirectory=/opt/guiguzi
 Restart=on-failure
 RestartSec=5
 
 # Environment
-EnvironmentFile=/etc/novaclaw/env
+EnvironmentFile=/etc/guiguzi/env
 Environment=NODE_ENV=production
 
 # Security hardening
@@ -22,7 +22,7 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
-ReadWritePaths=/var/lib/novaclaw /var/log/novaclaw
+ReadWritePaths=/var/lib/guiguzi /var/log/guiguzi
 
 # Resource limits
 LimitNOFILE=65536

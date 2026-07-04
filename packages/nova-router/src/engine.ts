@@ -1,8 +1,8 @@
 // ─── AI Router Engine ───
 // The core routing decision engine with 5 strategies
 
-import type { AIProvider, ModelInfo, TaskClassification, Message } from "@novaclaw/ai";
-import { classifyTask, getProviderRegistry } from "@novaclaw/ai";
+import type { AIProvider, ModelInfo, TaskClassification, Message } from "@guiguzi/ai";
+import { classifyTask, getProviderRegistry } from "@guiguzi/ai";
 import { HealthMonitor } from "./health.js";
 import type {
   RoutingPolicy, RoutingDecision, RoutingAlternative,

@@ -1,7 +1,7 @@
 // ─── Health Monitor ───
 // Tracks provider health and manages failover decisions
 
-import type { AIProvider, ProviderHealth } from "@novaclaw/ai";
+import type { AIProvider, ProviderHealth } from "@guiguzi/ai";
 
 export interface HealthThresholds {
   maxLatencyMs: number;

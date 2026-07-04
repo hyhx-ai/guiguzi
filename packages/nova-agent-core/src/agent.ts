@@ -2,13 +2,13 @@
 // Main agent loop: orchestrates AI calls, tool execution, and conversation management
 
 import { resolve } from "node:path";
-import type { AIProvider, ChatOptions, Message, StreamChunk } from "@novaclaw/ai";
-import { AIRouter } from "@novaclaw/router";
+import type { AIProvider, ChatOptions, Message, StreamChunk } from "@guiguzi/ai";
+import { AIRouter } from "@guiguzi/router";
 import { ToolExecutor } from "./tools.js";
 import { ConversationTree } from "./conversation.js";
 import type { AgentConfig, AgentEvent, ToolResult } from "./types.js";
 
-const DEFAULT_SYSTEM_PROMPT = `You are NovaClaw, an AI coding assistant. You help users write, debug, and improve code.
+const DEFAULT_SYSTEM_PROMPT = `You are Guiguzi, an AI coding assistant. You help users write, debug, and improve code.
 
 You have access to these tools:
 - read: Read file contents
@@ -89,7 +89,7 @@ export class Agent {
       };
 
       // Get the provider
-      const registry = (await import("@novaclaw/ai")).getProviderRegistry();
+      const registry = (await import("@guiguzi/ai")).getProviderRegistry();
       const provider = registry.get(decision.providerId);
       if (!provider) {
         yield { type: "error", error: `Provider ${decision.providerId} not found` };

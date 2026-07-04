@@ -2,7 +2,7 @@
 // Tree-structured conversation history with branching support
 
 import { randomUUID } from "node:crypto";
-import type { Message } from "@novaclaw/ai";
+import type { Message } from "@guiguzi/ai";
 import type { ConversationNode } from "./types.js";
 
 export class ConversationTree {

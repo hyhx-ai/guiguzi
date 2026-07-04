@@ -4,8 +4,8 @@
 import React from "react";
 import { render } from "ink";
 import { AgentApp } from "./AgentApp.js";
-import type { Agent } from "@novaclaw/agent-core";
-import type { AIRouter } from "@novaclaw/router";
+import type { Agent } from "@guiguzi/agent-core";
+import type { AIRouter } from "@guiguzi/router";
 
 /**
  * Render the interactive agent TUI.

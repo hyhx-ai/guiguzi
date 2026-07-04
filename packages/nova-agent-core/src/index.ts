@@ -1,4 +1,4 @@
-// ─── NovaClaw Agent Core ───
+// ─── Guiguzi Agent Core ───
 // Agent runtime: tool orchestration, tree-structured conversations, context compression
 
 export { Agent } from "./agent.js";

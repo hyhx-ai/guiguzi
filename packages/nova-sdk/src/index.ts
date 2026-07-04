@@ -1,22 +1,22 @@
-// ─── NovaClaw SDK ───
-// Embed NovaClaw agent into your own applications
+// ─── Guiguzi SDK ───
+// Embed Guiguzi agent into your own applications
 
-import { AIRouter } from "@novaclaw/router";
-import { Agent } from "@novaclaw/agent-core";
-import type { AgentConfig, AgentEvent } from "@novaclaw/agent-core";
-import type { RoutingPolicy } from "@novaclaw/router";
+import { AIRouter } from "@guiguzi/router";
+import { Agent } from "@guiguzi/agent-core";
+import type { AgentConfig, AgentEvent } from "@guiguzi/agent-core";
+import type { RoutingPolicy } from "@guiguzi/router";
 
-export interface NovaClawSDKConfig {
+export interface GuiguziSDKConfig {
   routerPolicy?: RoutingPolicy;
   agentConfig?: AgentConfig;
 }
 
-export class NovaClawSDK {
+export class GuiguziSDK {
   private router: AIRouter;
   private agents = new Map<string, Agent>();
   private initialized = false;
 
-  constructor(config: NovaClawSDKConfig = {}) {
+  constructor(config: GuiguziSDKConfig = {}) {
     this.router = new AIRouter(config.routerPolicy ?? { strategy: "hybrid" });
   }
 

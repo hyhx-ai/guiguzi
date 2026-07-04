@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# NovaClaw Linux Installer
-# Usage: curl -fsSL https://get.novaclaw.dev | bash
+# Guiguzi Linux Installer
+# Usage: curl -fsSL https://get.guiguzi.dev | bash
 #    or: bash install.sh
 set -euo pipefail
 
 VERSION="0.1.0-alpha"
-INSTALL_DIR="/opt/novaclaw"
-DATA_DIR="/var/lib/novaclaw"
-LOG_DIR="/var/log/novaclaw"
-CONFIG_DIR="/etc/novaclaw"
-SERVICE_USER="novaclaw"
+INSTALL_DIR="/opt/guiguzi"
+DATA_DIR="/var/lib/guiguzi"
+LOG_DIR="/var/log/guiguzi"
+CONFIG_DIR="/etc/guiguzi"
+SERVICE_USER="guiguzi"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -23,7 +23,7 @@ error() { echo -e "${RED}✗${NC} $*"; exit 1; }
 # ─── Pre-flight checks ───
 [[ $EUID -eq 0 ]] || error "Please run as root (sudo bash install.sh)"
 
-info "Installing NovaClaw v${VERSION}..."
+info "Installing Guiguzi v${VERSION}..."
 
 # Check Node.js
 if ! command -v node &>/dev/null; then
@@ -65,9 +65,9 @@ if [[ -f "$SCRIPT_DIR/package.json" ]]; then
     cp -r . "$INSTALL_DIR/"
 else
     # Download release tarball
-    TARBALL="novaclaw-${VERSION}.tar.gz"
+    TARBALL="guiguzi-${VERSION}.tar.gz"
     warn "Source not found. Downloading release..."
-    curl -fsSL "https://github.com/novaclaw/novaclaw/releases/download/v${VERSION}/${TARBALL}" -o "/tmp/${TARBALL}"
+    curl -fsSL "https://github.com/guiguzi/guiguzi/releases/download/v${VERSION}/${TARBALL}" -o "/tmp/${TARBALL}"
     tar -xzf "/tmp/${TARBALL}" -C "$INSTALL_DIR" --strip-components=1
     cd "$INSTALL_DIR"
     pnpm install --prod
@@ -76,13 +76,13 @@ info "Application installed to $INSTALL_DIR"
 
 # ─── Configuration ───
 if [[ ! -f "$CONFIG_DIR/env" ]]; then
-    cp "$INSTALL_DIR/deploy/systemd/novaclaw.env" "$CONFIG_DIR/env"
+    cp "$INSTALL_DIR/deploy/systemd/guiguzi.env" "$CONFIG_DIR/env"
     chmod 600 "$CONFIG_DIR/env"
-    warn "Created config at /etc/novaclaw/env — edit it to add your API keys"
+    warn "Created config at /etc/guiguzi/env — edit it to add your API keys"
 fi
 
 # ─── Systemd service ───
-cp "$INSTALL_DIR/deploy/systemd/novaclaw-gateway.service" /etc/systemd/system/
+cp "$INSTALL_DIR/deploy/systemd/guiguzi-gateway.service" /etc/systemd/system/
 systemctl daemon-reload
 info "Systemd service installed"
 
@@ -97,15 +97,15 @@ info "CLI available as: nova"
 # ─── Summary ───
 echo ""
 echo "═══════════════════════════════════════════"
-echo "  NovaClaw v${VERSION} installed!"
+echo "  Guiguzi v${VERSION} installed!"
 echo "═══════════════════════════════════════════"
 echo ""
 echo "  Next steps:"
-echo "    1. Edit config:  sudo nano /etc/novaclaw/env"
-echo "    2. Start gateway: sudo systemctl enable --now novaclaw-gateway"
-echo "    3. Check status:  sudo systemctl status novaclaw-gateway"
+echo "    1. Edit config:  sudo nano /etc/guiguzi/env"
+echo "    2. Start gateway: sudo systemctl enable --now guiguzi-gateway"
+echo "    3. Check status:  sudo systemctl status guiguzi-gateway"
 echo "    4. Use CLI:       nova agent"
 echo "    5. Health check:  nova doctor"
 echo ""
-echo "  Docs: https://github.com/novaclaw/novaclaw"
+echo "  Docs: https://github.com/guiguzi/guiguzi"
 echo ""

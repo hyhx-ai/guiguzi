@@ -4,7 +4,7 @@ import { describe, it, expect } from "vitest";
 // We test the CLI by importing the built module and verifying Commander setup,
 // since the actual CLI commands require AI providers.
 
-describe("NovaClaw CLI", () => {
+describe("Guiguzi CLI", () => {
   it("should have the correct version string", async () => {
     // The version is embedded in the module; verify it via the built output
     const { execSync } = await import("node:child_process");
@@ -29,7 +29,7 @@ describe("NovaClaw CLI", () => {
       timeout: 10000,
     });
 
-    expect(output).toContain("NovaClaw");
+    expect(output).toContain("Guiguzi");
     expect(output).toContain("AI Coding Agent");
     expect(output).toContain("Intelligent Router");
   });

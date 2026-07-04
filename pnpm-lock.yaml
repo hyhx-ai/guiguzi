@@ -14,17 +14,17 @@ importers:
 
   packages/nova-agent-core:
     dependencies:
-      '@novaclaw/ai':
+      '@guiguzi/ai':
         specifier: workspace:*
         version: link:../nova-ai
-      '@novaclaw/router':
+      '@guiguzi/router':
         specifier: workspace:*
         version: link:../nova-router
     devDependencies:
-      '@novaclaw/gateway':
+      '@guiguzi/gateway':
         specifier: workspace:*
         version: link:../nova-gateway
-      '@novaclaw/sdk':
+      '@guiguzi/sdk':
         specifier: workspace:*
         version: link:../nova-sdk
       tsup:
@@ -55,16 +55,16 @@ importers:
 
   packages/nova-cli:
     dependencies:
-      '@novaclaw/agent-core':
+      '@guiguzi/agent-core':
         specifier: workspace:*
         version: link:../nova-agent-core
-      '@novaclaw/ai':
+      '@guiguzi/ai':
         specifier: workspace:*
         version: link:../nova-ai
-      '@novaclaw/router':
+      '@guiguzi/router':
         specifier: workspace:*
         version: link:../nova-router
-      '@novaclaw/tui':
+      '@guiguzi/tui':
         specifier: workspace:*
         version: link:../nova-tui
       commander:
@@ -92,18 +92,18 @@ importers:
 
   packages/nova-gateway:
     dependencies:
+      '@guiguzi/agent-core':
+        specifier: workspace:*
+        version: link:../nova-agent-core
+      '@guiguzi/ai':
+        specifier: workspace:*
+        version: link:../nova-ai
+      '@guiguzi/router':
+        specifier: workspace:*
+        version: link:../nova-router
       '@hono/node-server':
         specifier: ^1.13.0
         version: 1.19.14(hono@4.12.27)
-      '@novaclaw/agent-core':
-        specifier: workspace:*
-        version: link:../nova-agent-core
-      '@novaclaw/ai':
-        specifier: workspace:*
-        version: link:../nova-ai
-      '@novaclaw/router':
-        specifier: workspace:*
-        version: link:../nova-router
       hono:
         specifier: ^4.7.0
         version: 4.12.27
@@ -120,7 +120,7 @@ importers:
 
   packages/nova-router:
     dependencies:
-      '@novaclaw/ai':
+      '@guiguzi/ai':
         specifier: workspace:*
         version: link:../nova-ai
     devDependencies:
@@ -136,10 +136,10 @@ importers:
 
   packages/nova-sdk:
     dependencies:
-      '@novaclaw/agent-core':
+      '@guiguzi/agent-core':
         specifier: workspace:*
         version: link:../nova-agent-core
-      '@novaclaw/router':
+      '@guiguzi/router':
         specifier: workspace:*
         version: link:../nova-router
     devDependencies:
@@ -176,10 +176,10 @@ importers:
 
   packages/nova-web:
     dependencies:
-      '@novaclaw/agent-core':
+      '@guiguzi/agent-core':
         specifier: workspace:*
         version: link:../nova-agent-core
-      '@novaclaw/router':
+      '@guiguzi/router':
         specifier: workspace:*
         version: link:../nova-router
       hono:

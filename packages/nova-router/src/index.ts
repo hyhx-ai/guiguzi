@@ -1,4 +1,4 @@
-// ─── NovaClaw Router: Intelligent AI Routing Engine ───
+// ─── Guiguzi Router: Intelligent AI Routing Engine ───
 // Core differentiator: multi-strategy dynamic model routing
 
 export { AIRouter } from "./engine.js";

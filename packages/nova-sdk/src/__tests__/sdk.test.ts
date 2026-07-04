@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { NovaClawSDK } from "../index.js";
-import type { NovaClawSDKConfig } from "../index.js";
+import { GuiguziSDK } from "../index.js";
+import type { GuiguziSDKConfig } from "../index.js";
 
-describe("NovaClawSDK", () => {
-  let sdk: NovaClawSDK;
+describe("GuiguziSDK", () => {
+  let sdk: GuiguziSDK;
 
   beforeEach(() => {
-    sdk = new NovaClawSDK();
+    sdk = new GuiguziSDK();
   });
 
   it("should construct with default config", () => {
@@ -14,17 +14,17 @@ describe("NovaClawSDK", () => {
   });
 
   it("should construct with custom router policy", () => {
-    const config: NovaClawSDKConfig = {
+    const config: GuiguziSDKConfig = {
       routerPolicy: { strategy: "cost" },
     };
-    const customSdk = new NovaClawSDK(config);
+    const customSdk = new GuiguziSDK(config);
     expect(customSdk).toBeDefined();
   });
 
   it("should construct with all strategies", () => {
     const strategies = ["static", "task", "cost", "failover", "hybrid"] as const;
     for (const strategy of strategies) {
-      const s = new NovaClawSDK({ routerPolicy: { strategy } });
+      const s = new GuiguziSDK({ routerPolicy: { strategy } });
       expect(s).toBeDefined();
     }
   });
@@ -56,7 +56,7 @@ describe("NovaClawSDK", () => {
     });
 
     it("should reflect the configured policy", () => {
-      const customSdk = new NovaClawSDK({ routerPolicy: { strategy: "failover" } });
+      const customSdk = new GuiguziSDK({ routerPolicy: { strategy: "failover" } });
       const stats = customSdk.getRouterStats();
       expect(stats.policy.strategy).toBe("failover");
     });

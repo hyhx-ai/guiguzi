@@ -1,4 +1,4 @@
-// ─── NovaClaw AI: Provider Abstraction Layer ───
+// ─── Guiguzi AI: Provider Abstraction Layer ───
 // Unified interface for 20+ LLM providers
 
 // ─── Core Types ───

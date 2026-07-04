@@ -1,7 +1,7 @@
 {
-  "name": "@novaclaw/router",
+  "name": "@guiguzi/router",
   "version": "0.1.0-alpha",
-  "description": "NovaClaw Intelligent AI Router - task-aware, cost-optimized, failover routing",
+  "description": "Guiguzi Intelligent AI Router - task-aware, cost-optimized, failover routing",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,7 +19,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@novaclaw/ai": "workspace:*"
+    "@guiguzi/ai": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.4.0",

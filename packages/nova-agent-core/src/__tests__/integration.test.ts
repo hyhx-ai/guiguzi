@@ -1,12 +1,12 @@
 import { describe, it, expect } from "vitest";
-import type { AIProvider, ModelInfo, ChatOptions, StreamChunk, ChatResponse, ProviderHealth } from "@novaclaw/ai";
-import { getProviderRegistry } from "@novaclaw/ai";
-import { AIRouter } from "@novaclaw/router";
-import type { RoutingPolicy } from "@novaclaw/router";
-import { Agent, ConversationTree } from "@novaclaw/agent-core";
-import type { AgentEvent } from "@novaclaw/agent-core";
-import { NovaClawSDK } from "@novaclaw/sdk";
-import { parseFeishuEvent, parseSlackEvent, parseDiscordInteraction } from "@novaclaw/gateway";
+import type { AIProvider, ModelInfo, ChatOptions, StreamChunk, ChatResponse, ProviderHealth } from "@guiguzi/ai";
+import { getProviderRegistry } from "@guiguzi/ai";
+import { AIRouter } from "@guiguzi/router";
+import type { RoutingPolicy } from "@guiguzi/router";
+import { Agent, ConversationTree } from "@guiguzi/agent-core";
+import type { AgentEvent } from "@guiguzi/agent-core";
+import { GuiguziSDK } from "@guiguzi/sdk";
+import { parseFeishuEvent, parseSlackEvent, parseDiscordInteraction } from "@guiguzi/gateway";
 
 // ─── Mock Provider Helper ───
 //
@@ -476,7 +476,7 @@ describe("Integration: SDK", () => {
       models: [createMockModelInfo({ quality: 101, speed: 100 })],
     }));
 
-    const sdk = new NovaClawSDK({ routerPolicy: { strategy: "hybrid" } });
+    const sdk = new GuiguziSDK({ routerPolicy: { strategy: "hybrid" } });
     const response = await sdk.chat("s1", "Hi");
 
     expect(response).toBe("Hello SDK");
@@ -489,7 +489,7 @@ describe("Integration: SDK", () => {
       models: [createMockModelInfo(HIGHEST_QUALITY)],
     }));
 
-    const sdk = new NovaClawSDK({ routerPolicy: { strategy: "hybrid" } });
+    const sdk = new GuiguziSDK({ routerPolicy: { strategy: "hybrid" } });
 
     await sdk.chat("alpha", "msg1");
     await sdk.chat("beta", "msg2");
@@ -508,7 +508,7 @@ describe("Integration: SDK", () => {
       models: [createMockModelInfo(HIGHEST_QUALITY)],
     }));
 
-    const sdk = new NovaClawSDK({ routerPolicy: { strategy: "cost" } });
+    const sdk = new GuiguziSDK({ routerPolicy: { strategy: "cost" } });
 
     await sdk.chat("s1", "hello");
 
@@ -527,7 +527,7 @@ describe("Integration: SDK", () => {
       models: [createMockModelInfo({ quality: 102, speed: 100 })],
     }));
 
-    const sdk = new NovaClawSDK({ routerPolicy: { strategy: "hybrid" } });
+    const sdk = new GuiguziSDK({ routerPolicy: { strategy: "hybrid" } });
 
     await sdk.chat("s1", "before");
     expect(sdk.getSessionIds()).toHaveLength(1);
@@ -552,7 +552,7 @@ describe("Integration: SDK", () => {
       models: [createMockModelInfo(HIGHEST_QUALITY)],
     }));
 
-    const sdk = new NovaClawSDK({ routerPolicy: { strategy: "hybrid" } });
+    const sdk = new GuiguziSDK({ routerPolicy: { strategy: "hybrid" } });
 
     await sdk.chat("sess", "First");
     await sdk.chat("sess", "Second");

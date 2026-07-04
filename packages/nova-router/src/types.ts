@@ -1,6 +1,6 @@
 // ─── Router Types ───
 
-import type { ModelInfo, TaskClassification, ProviderHealth } from "@novaclaw/ai";
+import type { ModelInfo, TaskClassification, ProviderHealth } from "@guiguzi/ai";
 
 // ─── Routing Strategies ───
 

@@ -1,6 +1,6 @@
-# Contributing to NovaClaw
+# Contributing to Guiguzi
 
-Thank you for your interest in contributing to NovaClaw!
+Thank you for your interest in contributing to Guiguzi!
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ Thank you for your interest in contributing to NovaClaw!
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-org/novaclaw.git
-   cd novaclaw
+   git clone https://github.com/your-org/guiguzi.git
+   cd guiguzi
    ```
 
 2. Install dependencies:

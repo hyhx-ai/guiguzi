@@ -7,6 +7,6 @@ export default defineConfig({
   clean: true,
   target: "node22",
   splitting: false,
-  external: [/^@novaclaw\//, "react", "ink"],
+  external: [/^@guiguzi\//, "react", "ink"],
   jsx: "automatic",
 });

@@ -1,7 +1,7 @@
 {
-  "name": "@novaclaw/tui",
+  "name": "@guiguzi/tui",
   "version": "0.1.0-alpha",
-  "description": "NovaClaw Terminal UI components",
+  "description": "Guiguzi Terminal UI components",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

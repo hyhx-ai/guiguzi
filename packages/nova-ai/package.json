@@ -1,7 +1,7 @@
 {
-  "name": "@novaclaw/ai",
+  "name": "@guiguzi/ai",
   "version": "0.1.0-alpha",
-  "description": "NovaClaw AI provider abstraction layer - unified interface for 20+ LLM providers",
+  "description": "Guiguzi AI provider abstraction layer - unified interface for 20+ LLM providers",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

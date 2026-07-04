@@ -1,11 +1,11 @@
-// ─── NovaClaw Gateway ───
+// ─── Guiguzi Gateway ───
 // Multi-channel gateway: Feishu, Slack, Discord, Web
 
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { AIRouter } from "@novaclaw/router";
-import { Agent } from "@novaclaw/agent-core";
-import type { AgentEvent } from "@novaclaw/agent-core";
+import { AIRouter } from "@guiguzi/router";
+import { Agent } from "@guiguzi/agent-core";
+import type { AgentEvent } from "@guiguzi/agent-core";
 import {
   parseFeishuEvent,
   parseSlackEvent,
@@ -23,7 +23,7 @@ export interface GatewayConfig {
   port: number;
   host?: string;
   channels: ChannelConfig[];
-  routerPolicy: import("@novaclaw/router").RoutingPolicy;
+  routerPolicy: import("@guiguzi/router").RoutingPolicy;
   rateLimit?: RateLimiterConfig;
 }
 

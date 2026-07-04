@@ -1,7 +1,7 @@
 {
-  "name": "@novaclaw/sdk",
+  "name": "@guiguzi/sdk",
   "version": "0.1.0-alpha",
-  "description": "NovaClaw Embed SDK - integrate NovaClaw into your own applications",
+  "description": "Guiguzi Embed SDK - integrate Guiguzi into your own applications",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,8 +19,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@novaclaw/agent-core": "workspace:*",
-    "@novaclaw/router": "workspace:*"
+    "@guiguzi/agent-core": "workspace:*",
+    "@guiguzi/router": "workspace:*"
   },
   "devDependencies": {
     "tsup": "^8.4.0",

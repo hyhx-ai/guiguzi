@@ -1,7 +1,7 @@
-// ─── NovaClaw Web Console ───
+// ─── Guiguzi Web Console ───
 // Web management console API (frontend served separately)
 
-import type { AIRouter, RoutingPolicy, RouteEvent } from "@novaclaw/router";
+import type { AIRouter, RoutingPolicy, RouteEvent } from "@guiguzi/router";
 
 export interface WebConsoleConfig {
   router: AIRouter;

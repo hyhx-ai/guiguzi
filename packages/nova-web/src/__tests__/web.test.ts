@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { getDashboardStats, generateRouterVisualization } from "../index.js";
 import type { DashboardStats } from "../index.js";
-import { AIRouter } from "@novaclaw/router";
-import type { RouteEvent } from "@novaclaw/router";
+import { AIRouter } from "@guiguzi/router";
+import type { RouteEvent } from "@guiguzi/router";
 
 describe("getDashboardStats", () => {
   it("should return stats for a fresh router", () => {

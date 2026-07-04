@@ -3,17 +3,17 @@
 
 import React, { useState, useCallback, useRef } from "react";
 import { Box, Text, useInput, useApp } from "ink";
-import { Agent } from "@novaclaw/agent-core";
-import type { AgentEvent } from "@novaclaw/agent-core";
-import { AIRouter } from "@novaclaw/router";
+import { Agent } from "@guiguzi/agent-core";
+import type { AgentEvent } from "@guiguzi/agent-core";
+import { AIRouter } from "@guiguzi/router";
 import {
   ChatView,
   StatusBar,
   RouterPanel,
   DEFAULT_THEME,
-} from "@novaclaw/tui";
-import type { ChatMessage, ToolCall } from "@novaclaw/tui";
-import type { ProviderHealth, RoutingDecision } from "@novaclaw/tui";
+} from "@guiguzi/tui";
+import type { ChatMessage, ToolCall } from "@guiguzi/tui";
+import type { ProviderHealth, RoutingDecision } from "@guiguzi/tui";
 
 // ─── Props ───
 
@@ -37,7 +37,7 @@ export function AgentApp({ agent, router, workspace }: AgentAppProps) {
     {
       id: nextId(),
       role: "system",
-      content: `NovaClaw agent ready. Workspace: ${workspace}`,
+      content: `Guiguzi agent ready. Workspace: ${workspace}`,
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);

@@ -5,6 +5,8 @@ import type { AIProvider, ProviderConfig, ModelInfo } from "./index.js";
 import { OpenAIProvider } from "./providers/openai.js";
 import { AnthropicProvider } from "./providers/anthropic.js";
 import { OllamaProvider } from "./providers/ollama.js";
+import { GoogleProvider } from "./providers/google.js";
+import { loadConfig, applyConfigToEnv } from "./config.js";
 
 export type ProviderId = string;
 
@@ -95,7 +97,7 @@ export function getProviderRegistry(): ProviderRegistry {
 }
 
 export function createProvider(
-  type: "openai" | "anthropic" | "ollama",
+  type: "openai" | "anthropic" | "ollama" | "google",
   config: ProviderConfig = {}
 ): AIProvider {
   switch (type) {
@@ -105,6 +107,8 @@ export function createProvider(
       return new AnthropicProvider(config);
     case "ollama":
       return new OllamaProvider(config);
+    case "google":
+      return new GoogleProvider(config);
     default:
       throw new Error(`Unknown provider type: ${type}`);
   }
@@ -115,11 +119,18 @@ export function createProvider(
 export function autoConfigureRegistry(): ProviderRegistry {
   const registry = getProviderRegistry();
 
+  // Load config file and apply to env vars (env takes precedence)
+  const config = loadConfig();
+  if (config) applyConfigToEnv(config);
+
   if (process.env["OPENAI_API_KEY"] || process.env["OPENAI_BASE_URL"]) {
     registry.register("openai", new OpenAIProvider());
   }
   if (process.env["ANTHROPIC_API_KEY"]) {
     registry.register("anthropic", new AnthropicProvider());
+  }
+  if (process.env["GOOGLE_API_KEY"]) {
+    registry.register("google", new GoogleProvider());
   }
   // Ollama is always registered (local, no key needed)
   registry.register("ollama", new OllamaProvider());

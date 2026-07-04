@@ -20,12 +20,12 @@ const OPENAI_MODELS: ModelInfo[] = [
 ];
 
 export class OpenAIProvider implements AIProvider {
-  readonly id = "openai";
-  readonly name = "OpenAI";
+  readonly id: string;
+  readonly name: string;
   readonly models: ModelInfo[];
 
-  private apiKey: string;
-  private baseUrl: string;
+  protected apiKey: string;
+  protected baseUrl: string;
   private timeout: number;
   private maxRetries: number;
   private defaultHeaders: Record<string, string>;
@@ -36,13 +36,15 @@ export class OpenAIProvider implements AIProvider {
   private _requestCount = 0;
   private _lastChecked = new Date();
 
-  constructor(config: OpenAIProviderConfig = {}) {
+  constructor(config: OpenAIProviderConfig = {}, overrides?: { id?: string; name?: string; models?: ModelInfo[] }) {
+    this.id = overrides?.id ?? "openai";
+    this.name = overrides?.name ?? "OpenAI";
+    this.models = overrides?.models ?? OPENAI_MODELS;
     this.apiKey = config.apiKey ?? process.env["OPENAI_API_KEY"] ?? "";
     this.baseUrl = config.baseUrl ?? process.env["OPENAI_BASE_URL"] ?? DEFAULT_BASE_URL;
     this.timeout = config.timeout ?? 30000;
     this.maxRetries = config.maxRetries ?? 3;
     this.defaultHeaders = config.defaultHeaders ?? {};
-    this.models = OPENAI_MODELS;
   }
 
   async chat(options: ChatOptions): Promise<ChatResponse> {

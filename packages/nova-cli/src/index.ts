@@ -255,6 +255,19 @@ program
       let apiKey = "";
       if (provider !== "ollama") {
         apiKey = await ask(`Enter ${provider} API key`);
+        // Set env var immediately so autoConfigureRegistry() in Step 2 can detect the provider
+        if (apiKey) {
+          const envMap: Record<string, string> = {
+            openai: "OPENAI_API_KEY",
+            anthropic: "ANTHROPIC_API_KEY",
+            google: "GOOGLE_API_KEY",
+            custom: "OPENAI_API_KEY",
+          };
+          const envKey = envMap[provider];
+          if (envKey && !process.env[envKey]) {
+            process.env[envKey] = apiKey;
+          }
+        }
       }
 
       // Step 2: Model selection
@@ -335,7 +348,7 @@ program
         version: VERSION,
         provider,
         model,
-        apiKey: apiKey ? `${apiKey.slice(0, 8)}...` : "",
+        apiKey: apiKey,
         router: { strategy: "hybrid" },
         gateway: { port, channels },
         workspace,

@@ -4,6 +4,9 @@
 
 set -euo pipefail
 
+# Prevent debconf interactive dialogs (e.g. "which services to restart")
+export DEBIAN_FRONTEND=noninteractive
+
 VERSION="0.1.0-alpha"
 REPO_URL="https://github.com/hyhx-ai/guiguzi.git"
 NPM_PACKAGE="guiguzi"

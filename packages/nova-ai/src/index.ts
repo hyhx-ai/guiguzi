@@ -78,6 +78,9 @@ export interface AIProvider {
 
   isAvailable(): Promise<boolean>;
   getHealth(): Promise<ProviderHealth>;
+
+  /** Fetch latest models from the provider's API. Falls back to static `models`. */
+  fetchRemoteModels?(): Promise<ModelInfo[]>;
 }
 
 export interface ChatResponse {

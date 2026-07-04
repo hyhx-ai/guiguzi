@@ -7,6 +7,7 @@ import { AIRouter } from "@guiguzi/router";
 import { Agent } from "@guiguzi/agent-core";
 import {
   autoConfigureRegistry,
+  getProviderRegistry,
   resetProviderRegistry,
   createProvider,
   PROVIDER_CATALOG,
@@ -71,7 +72,7 @@ program
       const selected = PROVIDER_CATALOG[choiceIdx]!;
       const selectedName = selected.name;
       const selectedId = selected.id;
-      const selectedEnvKey = selected.envKey;
+      const selectedBaseUrl = selected.baseUrl;
       console.log(`\n✓ Selected: ${selectedName}`);
 
       // Step 2: Enter API key
@@ -85,15 +86,15 @@ program
         }
       }
 
-      // Set env var and register provider
-      if (apiKey) {
-        process.env[selectedEnvKey] = apiKey;
-      }
-
-      // Step 3: Fetch and select model
-      resetProviderRegistry();
-      registry = await autoConfigureRegistry();
-      const detectedModels = await registry.getAllModels();
+      // Step 3: Create ONLY the selected provider and fetch models dynamically
+      console.log("\n⟨guiguzi⟩ Fetching latest models...");
+      const providerInstance = createProvider(selectedId, {
+        apiKey: apiKey || undefined,
+        baseUrl: selectedBaseUrl,
+      });
+      const detectedModels = providerInstance.fetchRemoteModels
+        ? await providerInstance.fetchRemoteModels()
+        : providerInstance.models;
 
       let modelId: string | undefined;
       if (detectedModels.length > 0) {
@@ -108,10 +109,10 @@ program
         const modelAtIdx = detectedModels[modelIdx];
         const firstModel = detectedModels[0];
         if (modelIdx >= 0 && modelAtIdx) {
-          modelId = modelAtIdx.id;
+          modelId = `${selectedId}:${modelAtIdx.id}`;
           console.log(`\n✓ Selected: ${modelId}`);
         } else if (firstModel) {
-          modelId = firstModel.id;
+          modelId = `${selectedId}:${firstModel.id}`;
           console.log(`\n✓ Using: ${modelId}`);
         }
       }
@@ -135,7 +136,11 @@ program
       await writeFile(configFile, JSON.stringify(config, null, 2));
       console.log(`\n✓ Configuration saved to ${configFile}`);
 
-      providers = registry.getEnabled();
+      // Register ONLY the selected provider in the global registry
+      resetProviderRegistry();
+      getProviderRegistry().register(selectedId, providerInstance);
+      providers = [providerInstance];
+      registry = getProviderRegistry();
       rl.close();
     }
 
@@ -357,47 +362,47 @@ program
         : PROVIDER_CATALOG[0]!;
       const provider = catalogEntry.id;
       const catalogName = catalogEntry.name;
-      const catalogEnvKey = catalogEntry.envKey;
 
       let apiKey = "";
       if (provider !== "ollama") {
         apiKey = await ask(`Enter ${catalogName} API key`);
-        // Set env var immediately so autoConfigureRegistry() in Step 2 can detect the provider
-        if (apiKey && !process.env[catalogEnvKey]) {
-          process.env[catalogEnvKey] = apiKey;
-        }
       }
 
       // Step 2: Model selection
       console.log("\n── Step 2: Default Model ──");
 
-      // Detect available models from configured providers
-      const modelRegistry = await autoConfigureRegistry();
-      const detectedProviders = modelRegistry.getEnabled();
-      const detectedModels = await modelRegistry.getAllModels();
+      // Create ONLY the selected provider and fetch models dynamically
+      console.log("  Fetching latest models...");
+      const onboardProvider = createProvider(provider, {
+        apiKey: apiKey || undefined,
+        baseUrl: catalogEntry.baseUrl,
+      });
+      const detectedModels = onboardProvider.fetchRemoteModels
+        ? await onboardProvider.fetchRemoteModels()
+        : onboardProvider.models;
 
       let model: string;
 
       if (detectedModels.length > 0) {
         console.log("  Detected models:");
         detectedModels.forEach((m: ModelInfo, i: number) => {
-          console.log(`    ${i + 1}. ${m.id} (${m.name})`);
+          console.log(`    ${i + 1}. ${provider}:${m.id} (${m.name})`);
           console.log(`       Context: ${(m.contextWindow / 1000).toFixed(0)}k | Quality: ${m.quality}/100 | Speed: ${m.speed}/100`);
         });
         console.log(`    0. Skip (use default)`);
         const modelChoice = await ask("Select model number", "0");
 
         if (modelChoice === "0" || modelChoice === "") {
-          model = detectedModels[0]!.id;
+          model = `${provider}:${detectedModels[0]!.id}`;
           console.log(`  Using first available: ${model}`);
         } else {
           const idx = parseInt(modelChoice, 10) - 1;
           const selected = detectedModels[idx];
           if (idx >= 0 && selected) {
-            model = selected.id;
+            model = `${provider}:${selected.id}`;
             console.log(`  Selected: ${model}`);
           } else {
-            model = detectedModels[0]?.id ?? "default";
+            model = `${provider}:${detectedModels[0]!.id}`;
             console.log("  Invalid selection, using first available");
           }
         }

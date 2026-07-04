@@ -157,6 +157,47 @@ export class OllamaProvider implements AIProvider {
       errorRate,
     };
   }
+
+  /** Fetch locally-installed models from Ollama's /api/tags endpoint. */
+  async fetchRemoteModels(): Promise<ModelInfo[]> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!response.ok) return [...this.models];
+
+      const data = (await response.json()) as {
+        models?: Array<{ name: string; details?: { family?: string; parameter_size?: string } }>;
+      };
+      if (!data.models || !Array.isArray(data.models)) return [...this.models];
+
+      const staticMap = new Map(this.models.map((m) => [m.id, m]));
+      const merged: ModelInfo[] = [];
+
+      for (const model of this.models) {
+        merged.push({ ...model });
+      }
+
+      for (const remote of data.models) {
+        const id = remote.name;
+        if (staticMap.has(id)) continue;
+        merged.push({
+          id,
+          name: id,
+          contextWindow: 32000,
+          costPerMInput: 0,
+          costPerMOutput: 0,
+          capabilities: ["code", "debug", "doc"] as import("../index.js").TaskType[],
+          quality: 70,
+          speed: 50,
+        });
+      }
+
+      return merged;
+    } catch {
+      return [...this.models];
+    }
+  }
 }
 
 // ─── Ollama API Types ───

@@ -154,6 +154,61 @@ export class OpenAIProvider implements AIProvider {
     };
   }
 
+  /**
+   * Fetch latest models from the provider's /models endpoint.
+   * Merges with static models: known models get updated contextWindow,
+   * new models are added with sensible defaults.
+   */
+  async fetchRemoteModels(): Promise<ModelInfo[]> {
+    try {
+      const url = `${this.baseUrl}/models`;
+      const headers: Record<string, string> = {};
+      if (this.apiKey) headers["Authorization"] = `Bearer ${this.apiKey}`;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(url, {
+        headers,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) return [...this.models];
+
+      const data = (await response.json()) as { data?: Array<{ id: string }> };
+      if (!data.data || !Array.isArray(data.data)) return [...this.models];
+
+      const remoteIds = new Set(data.data.map((m) => m.id));
+      const staticMap = new Map(this.models.map((m) => [m.id, m]));
+      const merged: ModelInfo[] = [];
+
+      // Update static models with remote data where available
+      for (const model of this.models) {
+        merged.push({ ...model });
+      }
+
+      // Add new models not in static list
+      for (const remoteId of remoteIds) {
+        if (staticMap.has(remoteId)) continue;
+        merged.push({
+          id: remoteId,
+          name: remoteId,
+          contextWindow: 128000,
+          costPerMInput: 0,
+          costPerMOutput: 0,
+          capabilities: ["code", "debug", "doc"] as import("../index.js").TaskType[],
+          quality: 75,
+          speed: 80,
+        });
+      }
+
+      return merged;
+    } catch {
+      return [...this.models];
+    }
+  }
+
   // ─── Private Methods ───
 
   private buildRequestBody(options: ChatOptions, stream: boolean): Record<string, unknown> {

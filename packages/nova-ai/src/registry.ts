@@ -54,9 +54,11 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
 
 class ProviderRegistry {
   private providers = new Map<ProviderId, ProviderEntry>();
+  private _modelsCache: ModelInfo[] | null = null;
 
   register(id: string, provider: AIProvider, config: ProviderConfig = {}): void {
     this.providers.set(id, { provider, config, enabled: true });
+    this._modelsCache = null;
   }
 
   get(id: string): AIProvider | undefined {
@@ -75,22 +77,36 @@ class ProviderRegistry {
 
   enable(id: string): void {
     const entry = this.providers.get(id);
-    if (entry) entry.enabled = true;
+    if (entry) {
+      entry.enabled = true;
+      this._modelsCache = null;
+    }
   }
 
   disable(id: string): void {
     const entry = this.providers.get(id);
-    if (entry) entry.enabled = false;
+    if (entry) {
+      entry.enabled = false;
+      this._modelsCache = null;
+    }
   }
 
   async getAllModels(): Promise<ModelInfo[]> {
+    if (this._modelsCache) return this._modelsCache;
+
     const models: ModelInfo[] = [];
     for (const entry of this.providers.values()) {
       if (!entry.enabled) continue;
-      for (const model of entry.provider.models) {
+      // Use dynamic fetch if available, otherwise fall back to static models
+      const providerModels = entry.provider.fetchRemoteModels
+        ? await entry.provider.fetchRemoteModels()
+        : entry.provider.models;
+      for (const model of providerModels) {
         models.push({ ...model, id: `${entry.provider.id}:${model.id}` });
       }
     }
+
+    this._modelsCache = models;
     return models;
   }
 

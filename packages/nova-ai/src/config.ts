@@ -47,27 +47,22 @@ export function applyConfigToEnv(config: GuiguziConfig): void {
   if (!config.apiKey || !config.provider) return;
 
   // Don't override if env var already set (env takes precedence)
-  switch (config.provider) {
-    case "openai":
-      if (!process.env["OPENAI_API_KEY"]) {
-        process.env["OPENAI_API_KEY"] = config.apiKey;
-      }
-      break;
-    case "anthropic":
-      if (!process.env["ANTHROPIC_API_KEY"]) {
-        process.env["ANTHROPIC_API_KEY"] = config.apiKey;
-      }
-      break;
-    case "google":
-      if (!process.env["GOOGLE_API_KEY"]) {
-        process.env["GOOGLE_API_KEY"] = config.apiKey;
-      }
-      break;
-    case "custom":
-      if (!process.env["OPENAI_API_KEY"]) {
-        process.env["OPENAI_API_KEY"] = config.apiKey;
-      }
-      break;
-    // ollama doesn't need an API key
+  const envMap: Record<string, string> = {
+    openai: "OPENAI_API_KEY",
+    anthropic: "ANTHROPIC_API_KEY",
+    google: "GOOGLE_API_KEY",
+    deepseek: "DEEPSEEK_API_KEY",
+    qwen: "QWEN_API_KEY",
+    glm: "GLM_API_KEY",
+    moonshot: "MOONSHOT_API_KEY",
+    minimax: "MINIMAX_API_KEY",
+    groq: "GROQ_API_KEY",
+    together: "TOGETHER_API_KEY",
+    xai: "XAI_API_KEY",
+    custom: "OPENAI_API_KEY",
+  };
+  const envKey = envMap[config.provider];
+  if (envKey && !process.env[envKey]) {
+    process.env[envKey] = config.apiKey;
   }
 }

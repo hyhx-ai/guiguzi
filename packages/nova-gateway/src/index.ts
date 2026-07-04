@@ -88,7 +88,7 @@ export class Gateway {
 
   async start(): Promise<void> {
     await this.router.initialize();
-    console.log(`⟨nova⟩ Gateway starting on port ${this.config.port}...`);
+    console.log(`⟨guiguzi⟩ Gateway starting on port ${this.config.port}...`);
 
     serve({
       fetch: this.app.fetch,
@@ -101,7 +101,7 @@ export class Gateway {
 
   async stop(): Promise<void> {
     this.router.shutdown();
-    console.log("⟨nova⟩ Gateway stopped");
+    console.log("⟨guiguzi⟩ Gateway stopped");
   }
 
   private setupRoutes(): void {
@@ -162,7 +162,7 @@ export class Gateway {
 
       const msg = parseFeishuEvent(body);
       if (msg) {
-        console.log(`⟨nova⟩ [feishu] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [feishu] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -186,7 +186,7 @@ export class Gateway {
 
       const msg = parseSlackEvent(body);
       if (msg) {
-        console.log(`⟨nova⟩ [slack] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [slack] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -210,7 +210,7 @@ export class Gateway {
 
       const msg = parseDiscordInteraction(body);
       if (msg) {
-        console.log(`⟨nova⟩ [discord] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [discord] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -228,7 +228,7 @@ export class Gateway {
 
       const msg = parseTelegramUpdate(body);
       if (msg) {
-        console.log(`⟨nova⟩ [telegram] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [telegram] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -246,7 +246,7 @@ export class Gateway {
 
       const msg = parseWhatsAppMessage(body);
       if (msg) {
-        console.log(`⟨nova⟩ [whatsapp] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [whatsapp] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -264,7 +264,7 @@ export class Gateway {
 
       const msg = parseMatrixEvent(body);
       if (msg) {
-        console.log(`⟨nova⟩ [matrix] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [matrix] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -282,7 +282,7 @@ export class Gateway {
 
       const msg = parseMSTeamsActivity(body);
       if (msg) {
-        console.log(`⟨nova⟩ [msteams] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [msteams] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -300,7 +300,7 @@ export class Gateway {
 
       const msg = parseLineWebhook(body);
       if (msg) {
-        console.log(`⟨nova⟩ [line] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [line] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -318,7 +318,7 @@ export class Gateway {
 
       const msg = parseIrcMessage(body);
       if (msg) {
-        console.log(`⟨nova⟩ [irc] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [irc] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -336,7 +336,7 @@ export class Gateway {
 
       const msg = parseGoogleChatEvent(body);
       if (msg) {
-        console.log(`⟨nova⟩ [googlechat] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [googlechat] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -354,7 +354,7 @@ export class Gateway {
 
       const msg = parseMattermostEvent(body);
       if (msg) {
-        console.log(`⟨nova⟩ [mattermost] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [mattermost] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -372,7 +372,7 @@ export class Gateway {
 
       const msg = parseSmsWebhook(body);
       if (msg) {
-        console.log(`⟨nova⟩ [sms] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [sms] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -390,7 +390,7 @@ export class Gateway {
 
       const msg = parseNostrEvent(body);
       if (msg) {
-        console.log(`⟨nova⟩ [nostr] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [nostr] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -408,7 +408,7 @@ export class Gateway {
 
       const msg = parseQQBotEvent(body);
       if (msg) {
-        console.log(`⟨nova⟩ [qqbot] ${msg.sender}: ${msg.content}`);
+        console.log(`⟨guiguzi⟩ [qqbot] ${msg.sender}: ${msg.content}`);
         this.enqueueMessage(msg);
       }
 
@@ -422,7 +422,7 @@ export class Gateway {
   private async handleMessage(msg: GatewayMessage): Promise<void> {
     const channelConfig = this.config.channels.find((ch) => ch.type === msg.channel);
     if (!channelConfig) {
-      console.warn(`⟨nova⟩ No channel config for ${msg.channel}, dropping message`);
+      console.warn(`⟨guiguzi⟩ No channel config for ${msg.channel}, dropping message`);
       return;
     }
 
@@ -433,7 +433,7 @@ export class Gateway {
     }) ?? channelConfig.bindings[0];
 
     if (!binding) {
-      console.warn(`⟨nova⟩ No binding for ${msg.channel} message from ${msg.sender}`);
+      console.warn(`⟨guiguzi⟩ No binding for ${msg.channel} message from ${msg.sender}`);
       return;
     }
 
@@ -449,7 +449,7 @@ export class Gateway {
         // Process events (logging for now; response dispatch will come later)
       }
     } catch (err) {
-      console.error(`⟨nova⟩ Agent ${agentId} error:`, err);
+      console.error(`⟨guiguzi⟩ Agent ${agentId} error:`, err);
     }
   }
 
@@ -469,7 +469,7 @@ export class Gateway {
 
     // Process immediately for now (queue enables future batching/backpressure)
     this.handleMessage(msg).catch((err) => {
-      console.error(`⟨nova⟩ Failed to process message ${msg.id}:`, err);
+      console.error(`⟨guiguzi⟩ Failed to process message ${msg.id}:`, err);
     });
   }
 

@@ -5,7 +5,13 @@
 import { Command } from "commander";
 import { AIRouter } from "@guiguzi/router";
 import { Agent } from "@guiguzi/agent-core";
-import { autoConfigureRegistry, type ModelInfo } from "@guiguzi/ai";
+import {
+  autoConfigureRegistry,
+  resetProviderRegistry,
+  createProvider,
+  PROVIDER_CATALOG,
+  type ModelInfo,
+} from "@guiguzi/ai";
 import { startConsoleServer } from "@guiguzi/web";
 import { renderAgentApp } from "./render.js";
 
@@ -14,30 +20,123 @@ const VERSION = "0.1.0-alpha";
 const program = new Command();
 
 program
-  .name("nova")
+  .name("guiguzi")
   .description("Guiguzi - AI Coding Agent with Intelligent Router")
   .version(VERSION);
 
-// ─── nova agent ─── Interactive terminal agent
+// ─── guiguzi agent ─── Interactive terminal agent
 program
   .command("agent")
   .description("Start interactive coding agent")
-  .option("-m, --model <model>", "Force specific model (e.g., anthropic:claude-4-opus)")
+  .option("-m, --model <model>", "Force specific model (e.g., deepseek:deepseek-chat)")
   .option("-s, --strategy <strategy>", "Routing strategy: static|task|cost|failover|hybrid", "hybrid")
   .option("-w, --workspace <path>", "Working directory", process.cwd())
   .option("--system-prompt <prompt>", "Custom system prompt")
   .action(async (options) => {
-    console.log(`\n⟨nova⟩ Guiguzi v${VERSION}`);
-    console.log("⟨nova⟩ Initializing...\n");
+    console.log(`\n⟨guiguzi⟩ Guiguzi v${VERSION}`);
+    console.log("⟨guiguzi⟩ Initializing...\n");
 
     // Auto-configure providers from environment
-    const registry = autoConfigureRegistry();
-    const providers = registry.getEnabled();
+    let registry = await autoConfigureRegistry();
+    let providers = registry.getEnabled();
 
+    // Interactive setup if no providers configured
     if (providers.length === 0) {
-      console.error("⟨nova⟩ No AI providers configured!");
-      console.error("⟨nova⟩ Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or start Ollama.");
-      process.exit(1);
+      console.log("⟨guiguzi⟩ No AI providers configured. Let's set one up!\n");
+
+      const readline = await import("node:readline");
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      const ask = (q: string): Promise<string> =>
+        new Promise((resolve) => rl.question(q, (a) => resolve(a.trim())));
+
+      // Step 1: Select provider from catalog
+      console.log("── Select AI Provider ──");
+      const regions = [...new Set(PROVIDER_CATALOG.map((p) => p.region))];
+      for (const region of regions) {
+        console.log(`\n  [${region}]`);
+        const entries = PROVIDER_CATALOG.filter((p) => p.region === region);
+        for (const entry of entries) {
+          const idx = PROVIDER_CATALOG.indexOf(entry) + 1;
+          console.log(`    ${idx}. ${entry.name}`);
+        }
+      }
+      console.log();
+      const choiceStr = await ask("Enter provider number: ");
+      const choiceIdx = parseInt(choiceStr, 10) - 1;
+      if (choiceIdx < 0 || choiceIdx >= PROVIDER_CATALOG.length) {
+        console.error("⟨guiguzi⟩ Invalid selection. Aborting.");
+        rl.close();
+        process.exit(1);
+      }
+      const selected = PROVIDER_CATALOG[choiceIdx]!;
+      const selectedName = selected.name;
+      const selectedId = selected.id;
+      const selectedEnvKey = selected.envKey;
+      console.log(`\n✓ Selected: ${selectedName}`);
+
+      // Step 2: Enter API key
+      let apiKey = "";
+      if (selectedId !== "ollama") {
+        apiKey = await ask(`Enter ${selectedName} API key: `);
+        if (!apiKey) {
+          console.error("⟨guiguzi⟩ API key is required. Aborting.");
+          rl.close();
+          process.exit(1);
+        }
+      }
+
+      // Set env var and register provider
+      if (apiKey) {
+        process.env[selectedEnvKey] = apiKey;
+      }
+
+      // Step 3: Fetch and select model
+      resetProviderRegistry();
+      registry = await autoConfigureRegistry();
+      const detectedModels = await registry.getAllModels();
+
+      let modelId: string | undefined;
+      if (detectedModels.length > 0) {
+        console.log("\n── Select Model ──");
+        detectedModels.forEach((m: ModelInfo, i: number) => {
+          const ctx = (m.contextWindow / 1000).toFixed(0);
+          console.log(`    ${i + 1}. ${m.id} (${m.name})`);
+          console.log(`       Context: ${ctx}k | Quality: ${m.quality}/100 | Speed: ${m.speed}/100`);
+        });
+        const modelStr = await ask("\nSelect model number (or press Enter for first): ");
+        const modelIdx = modelStr ? parseInt(modelStr, 10) - 1 : 0;
+        const modelAtIdx = detectedModels[modelIdx];
+        const firstModel = detectedModels[0];
+        if (modelIdx >= 0 && modelAtIdx) {
+          modelId = modelAtIdx.id;
+          console.log(`\n✓ Selected: ${modelId}`);
+        } else if (firstModel) {
+          modelId = firstModel.id;
+          console.log(`\n✓ Using: ${modelId}`);
+        }
+      }
+
+      // Save config
+      const { writeFile, mkdir } = await import("node:fs/promises");
+      const { join } = await import("node:path");
+      const configDir = join(process.env.HOME ?? process.env.USERPROFILE ?? ".", ".guiguzi");
+      const configFile = join(configDir, "guiguzi.json");
+      const config = {
+        version: VERSION,
+        provider: selectedId,
+        model: modelId ?? "default",
+        apiKey,
+        router: { strategy: "hybrid" },
+        gateway: { port: 18789, channels: [] },
+        workspace: join(process.env.HOME ?? process.env.USERPROFILE ?? ".", ".guiguzi", "workspace"),
+        daemon: { installed: false },
+      };
+      await mkdir(configDir, { recursive: true });
+      await writeFile(configFile, JSON.stringify(config, null, 2));
+      console.log(`\n✓ Configuration saved to ${configFile}`);
+
+      providers = registry.getEnabled();
+      rl.close();
     }
 
     // Initialize router
@@ -45,9 +144,9 @@ program
     await router.initialize();
 
     const models = await registry.getAllModels();
-    console.log(`⟨nova⟩ Router: ${options.strategy} strategy active`);
-    console.log(`⟨nova⟩ ${providers.length} providers online, ${models.length} models available`);
-    console.log("⟨nova⟩ Ready. Type your request. (Ctrl+C to exit)\n");
+    console.log(`⟨guiguzi⟩ Router: ${options.strategy} strategy active`);
+    console.log(`⟨guiguzi⟩ ${providers.length} providers online, ${models.length} models available`);
+    console.log("⟨guiguzi⟩ Ready. Type your request. (Ctrl+C to exit)\n");
 
     // Create agent
     const agent = new Agent({
@@ -60,7 +159,7 @@ program
     renderAgentApp(agent, router, options.workspace);
   });
 
-// ─── nova print ─── Non-interactive mode
+// ─── guiguzi print ─── Non-interactive mode
 program
   .command("print")
   .description("Run a single prompt non-interactively")
@@ -69,7 +168,7 @@ program
   .option("-s, --strategy <strategy>", "Routing strategy", "hybrid")
   .option("-w, --workspace <path>", "Working directory", process.cwd())
   .action(async (prompt, options) => {
-    autoConfigureRegistry();
+    await autoConfigureRegistry();
     const router = new AIRouter({ strategy: options.strategy });
     await router.initialize();
 
@@ -87,14 +186,14 @@ program
     router.shutdown();
   });
 
-// ─── nova doctor ─── Health check
+// ─── guiguzi doctor ─── Health check
 program
   .command("doctor")
   .description("Check system health and provider status")
   .action(async () => {
-    console.log("⟨nova⟩ Running health checks...\n");
+    console.log("⟨guiguzi⟩ Running health checks...\n");
 
-    const registry = autoConfigureRegistry();
+    const registry = await autoConfigureRegistry();
     const providers = registry.getEnabled();
 
     for (const provider of providers) {
@@ -106,24 +205,24 @@ program
       console.log(`  Models: ${provider.models.map((m: ModelInfo) => m.id).join(", ")}`);
     }
 
-    console.log(`\n⟨nova⟩ ${providers.length} providers configured`);
+    console.log(`\n⟨guiguzi⟩ ${providers.length} providers configured`);
     const models = await registry.getAllModels();
-    console.log(`⟨nova⟩ ${models.length} total models available`);
+    console.log(`⟨guiguzi⟩ ${models.length} total models available`);
   });
 
-// ─── nova init ─── Project initialization
+// ─── guiguzi init ─── Project initialization
 program
   .command("init")
   .description("Initialize Guiguzi in a project directory")
   .option("--non-interactive", "Skip interactive prompts")
   .option("--accept-risk", "Accept risk disclaimer")
   .action(async (options) => {
-    console.log("⟨nova⟩ Initializing Guiguzi...\n");
+    console.log("⟨guiguzi⟩ Initializing Guiguzi...\n");
 
     const { writeFile, mkdir } = await import("node:fs/promises");
     const { join } = await import("node:path");
 
-    const configDir = join(process.cwd(), ".nova");
+    const configDir = join(process.cwd(), ".guiguzi");
     await mkdir(configDir, { recursive: true });
 
     const config = {
@@ -144,15 +243,15 @@ program
       JSON.stringify(config, null, 2)
     );
 
-    console.log("✓ Created .nova/config.json");
+    console.log("✓ Created .guiguzi/config.json");
     console.log("✓ Guiguzi initialized!");
     console.log("\nNext steps:");
-    console.log("  1. Set API keys: export OPENAI_API_KEY=... or export ANTHROPIC_API_KEY=...");
-    console.log("  2. Start agent: nova agent");
-    console.log("  3. Check health: nova doctor");
+    console.log("  1. Set API keys: export DEEPSEEK_API_KEY=... or export GOOGLE_API_KEY=...");
+    console.log("  2. Start agent: guiguzi agent");
+    console.log("  3. Check health: guiguzi doctor");
   });
 
-// ─── nova gateway ─── Gateway management
+// ─── guiguzi gateway ─── Gateway management
 program
   .command("gateway")
   .description("Manage the multi-channel gateway")
@@ -160,20 +259,20 @@ program
   .action(async (action) => {
     switch (action) {
       case "start":
-        console.log("⟨nova⟩ Starting gateway on port 18789...");
+        console.log("⟨guiguzi⟩ Starting gateway on port 18789...");
         // TODO: Start gateway server
         console.log("✓ Gateway started");
         break;
       case "stop":
-        console.log("⟨nova⟩ Stopping gateway...");
+        console.log("⟨guiguzi⟩ Stopping gateway...");
         console.log("✓ Gateway stopped");
         break;
       case "install":
-        console.log("⟨nova⟩ Installing gateway as system service...");
+        console.log("⟨guiguzi⟩ Installing gateway as system service...");
         console.log("✓ Run: sudo systemctl enable --now guiguzi-gateway");
         break;
       case "status":
-        console.log("⟨nova⟩ Gateway status: running");
+        console.log("⟨guiguzi⟩ Gateway status: running");
         console.log("  Port: 18789");
         console.log("  Channels: 0 configured");
         break;
@@ -241,32 +340,31 @@ program
 
       // Step 1: Provider selection
       console.log("\n── Step 1: AI Provider ──");
-      console.log("  1. Anthropic (Claude)");
-      console.log("  2. OpenAI (GPT)");
-      console.log("  3. Google (Gemini)");
-      console.log("  4. Ollama (Local)");
-      console.log("  5. Custom (OpenAI-compatible)");
-      const providerChoice = await ask("Select provider", "1");
-      const providerMap: Record<string, string> = {
-        "1": "anthropic", "2": "openai", "3": "google", "4": "ollama", "5": "custom"
-      };
-      const provider = providerMap[providerChoice] ?? "anthropic";
+      const regions = [...new Set(PROVIDER_CATALOG.map((p) => p.region))];
+      for (const region of regions) {
+        console.log(`\n  [${region}]`);
+        const entries = PROVIDER_CATALOG.filter((p) => p.region === region);
+        for (const entry of entries) {
+          const idx = PROVIDER_CATALOG.indexOf(entry) + 1;
+          console.log(`    ${idx}. ${entry.name}`);
+        }
+      }
+      console.log();
+      const providerChoice = await ask("Select provider number", "1");
+      const providerIdx = parseInt(providerChoice, 10) - 1;
+      const catalogEntry = (providerIdx >= 0 && providerIdx < PROVIDER_CATALOG.length)
+        ? PROVIDER_CATALOG[providerIdx]!
+        : PROVIDER_CATALOG[0]!;
+      const provider = catalogEntry.id;
+      const catalogName = catalogEntry.name;
+      const catalogEnvKey = catalogEntry.envKey;
 
       let apiKey = "";
       if (provider !== "ollama") {
-        apiKey = await ask(`Enter ${provider} API key`);
+        apiKey = await ask(`Enter ${catalogName} API key`);
         // Set env var immediately so autoConfigureRegistry() in Step 2 can detect the provider
-        if (apiKey) {
-          const envMap: Record<string, string> = {
-            openai: "OPENAI_API_KEY",
-            anthropic: "ANTHROPIC_API_KEY",
-            google: "GOOGLE_API_KEY",
-            custom: "OPENAI_API_KEY",
-          };
-          const envKey = envMap[provider];
-          if (envKey && !process.env[envKey]) {
-            process.env[envKey] = apiKey;
-          }
+        if (apiKey && !process.env[catalogEnvKey]) {
+          process.env[catalogEnvKey] = apiKey;
         }
       }
 
@@ -274,7 +372,7 @@ program
       console.log("\n── Step 2: Default Model ──");
 
       // Detect available models from configured providers
-      const modelRegistry = autoConfigureRegistry();
+      const modelRegistry = await autoConfigureRegistry();
       const detectedProviders = modelRegistry.getEnabled();
       const detectedModels = await modelRegistry.getAllModels();
 
@@ -290,15 +388,8 @@ program
         const modelChoice = await ask("Select model number", "0");
 
         if (modelChoice === "0" || modelChoice === "") {
-          const defaultModels: Record<string, string> = {
-            anthropic: "claude-4-sonnet",
-            openai: "gpt-4o",
-            google: "gemini-2.5-pro",
-            ollama: "llama4",
-            custom: "default",
-          };
-          model = defaultModels[provider] ?? "default";
-          console.log(`  Using default: ${model}`);
+          model = detectedModels[0]!.id;
+          console.log(`  Using first available: ${model}`);
         } else {
           const idx = parseInt(modelChoice, 10) - 1;
           const selected = detectedModels[idx];
@@ -306,19 +397,12 @@ program
             model = selected.id;
             console.log(`  Selected: ${model}`);
           } else {
-            model = "default";
-            console.log("  Invalid selection, using default");
+            model = detectedModels[0]?.id ?? "default";
+            console.log("  Invalid selection, using first available");
           }
         }
       } else {
-        const defaultModels: Record<string, string> = {
-          anthropic: "claude-4-sonnet",
-          openai: "gpt-4o",
-          google: "gemini-2.5-pro",
-          ollama: "llama4",
-          custom: "default",
-        };
-        model = await ask("Default model", defaultModels[provider]);
+        model = await ask("Default model", "default");
       }
 
       // Step 3: Workspace
@@ -428,7 +512,7 @@ WantedBy=default.target
 
     // Health check
     console.log("\n── Health Check ──");
-    const registry = autoConfigureRegistry();
+    const registry = await autoConfigureRegistry();
     const providers = registry.getEnabled();
     if (providers.length > 0) {
       console.log(`✓ ${providers.length} AI provider(s) configured`);
@@ -452,7 +536,7 @@ program
   .action(async (options) => {
     console.log(`\n⟨guiguzi⟩ Starting Web Console...\n`);
 
-    const registry = autoConfigureRegistry();
+    const registry = await autoConfigureRegistry();
     const router = new AIRouter({ strategy: "hybrid" });
     await router.initialize();
 
@@ -473,13 +557,12 @@ program
   .description("List and configure available AI models")
   .option("--json", "Output as JSON")
   .action(async (options) => {
-    const registry = autoConfigureRegistry();
+    const registry = await autoConfigureRegistry();
     const providers = registry.getEnabled();
 
     if (providers.length === 0) {
       console.log("⟨guiguzi⟩ No AI providers configured.");
-      console.log("  Set OPENAI_API_KEY, ANTHROPIC_API_KEY, or start Ollama.");
-      console.log("  Run 'guiguzi onboard' to configure.");
+      console.log("  Run 'guiguzi agent' for interactive setup, or 'guiguzi onboard'.");
       return;
     }
 

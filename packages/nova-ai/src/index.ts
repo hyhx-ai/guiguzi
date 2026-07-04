@@ -134,7 +134,23 @@ export interface TaskClassification {
 export { OpenAIProvider } from "./providers/openai.js";
 export { AnthropicProvider } from "./providers/anthropic.js";
 export { OllamaProvider } from "./providers/ollama.js";
+export { GenericOpenAIProvider } from "./providers/generic.js";
 export { GoogleProvider } from "./providers/google.js";
-export { createProvider, getProviderRegistry, autoConfigureRegistry } from "./registry.js";
+export { DeepSeekProvider } from "./providers/deepseek.js";
+export { QwenProvider } from "./providers/qwen.js";
+export { GLMProvider } from "./providers/glm.js";
+export { MoonshotProvider } from "./providers/moonshot.js";
+export { MiniMaxProvider } from "./providers/minimax.js";
+export { GroqProvider } from "./providers/groq.js";
+export { TogetherProvider } from "./providers/together.js";
+export { XAIProvider } from "./providers/xai.js";
+export {
+  createProvider,
+  getProviderRegistry,
+  autoConfigureRegistry,
+  resetProviderRegistry,
+  PROVIDER_CATALOG,
+  type ProviderCatalogEntry,
+} from "./registry.js";
 export { loadConfig, applyConfigToEnv, type GuiguziConfig } from "./config.js";
 export { classifyTask } from "./classifier.js";

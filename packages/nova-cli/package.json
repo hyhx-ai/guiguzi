@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "nova": "./dist/index.js"
+    "guiguzi": "./dist/index.js"
   },
   "exports": {
     ".": {

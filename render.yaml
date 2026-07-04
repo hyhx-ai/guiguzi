@@ -1,0 +1,22 @@
+# Render deployment configuration for Guiguzi
+# Deploy: connect repo on render.com dashboard
+
+services:
+  - type: web
+    name: guiguzi-gateway
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GATEWAY_PORT
+        value: 3000
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+    disk:
+      name: guiguzi-data
+      mountPath: /data
+      sizeGB: 1

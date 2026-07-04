@@ -1,9 +1,132 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Box, Text } from "ink";
-import { DEFAULT_THEME } from "../index.js";
-import type { Theme } from "../index.js";
+import type { ThemePalette } from "../theme.js";
 
-// ─── Types ───
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  timestamp?: Date;
+  model?: string;
+  toolCalls?: ToolCallDisplay[];
+  isStreaming?: boolean;
+}
+
+export interface ToolCallDisplay {
+  id: string;
+  name: string;
+  args: string;
+  status: "running" | "success" | "error";
+  output?: string;
+  expanded?: boolean;
+}
+
+export interface ChatLogProps {
+  messages: ChatMessage[];
+  theme: ThemePalette;
+  maxComponents?: number;
+  toolsExpanded?: boolean;
+}
+
+export function ChatLog({ messages, theme, maxComponents = 180, toolsExpanded = false }: ChatLogProps) {
+  const visible = messages.slice(-maxComponents);
+
+  return (
+    <Box flexDirection="column" paddingX={1}>
+      {visible.map((msg) => {
+        switch (msg.role) {
+          case "user":
+            return (
+              <Box key={msg.id} flexDirection="column" marginBottom={1}>
+                <Box>
+                  <Text backgroundColor={theme.userBg} color={theme.userText} bold> You </Text>
+                </Box>
+                <Box paddingLeft={2}>
+                  <Text wrap="wrap">{msg.content}</Text>
+                </Box>
+              </Box>
+            );
+
+          case "assistant":
+            return (
+              <Box key={msg.id} flexDirection="column" marginBottom={1}>
+                <Box>
+                  <Text color={theme.accent} bold>{"\u27E8guiguzi\u27E9"}</Text>
+                  {msg.model && <Text dimColor> ({msg.model})</Text>}
+                  {msg.isStreaming && <Text dimColor> ...</Text>}
+                </Box>
+                <Box paddingLeft={2}>
+                  <Text wrap="wrap" color={theme.text}>{msg.content}</Text>
+                </Box>
+                {msg.toolCalls && msg.toolCalls.length > 0 && (
+                  <Box flexDirection="column" paddingLeft={2} marginTop={1}>
+                    {msg.toolCalls.map((tc) => (
+                      <ToolExecution key={tc.id} tool={tc} theme={theme} expanded={toolsExpanded} />
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            );
+
+          case "system":
+            return (
+              <Box key={msg.id} marginBottom={1}>
+                <Text color={theme.systemText} italic>{"\u2139"} {msg.content}</Text>
+              </Box>
+            );
+
+          case "tool":
+            return (
+              <Box key={msg.id} marginBottom={1}>
+                <Text dimColor>{"\uD83D\uDD27"} {msg.content}</Text>
+              </Box>
+            );
+
+          default:
+            return null;
+        }
+      })}
+    </Box>
+  );
+}
+
+function ToolExecution({ tool, theme, expanded }: { tool: ToolCallDisplay; theme: ThemePalette; expanded: boolean }) {
+  const statusColor = tool.status === "running" ? theme.toolPending
+    : tool.status === "success" ? theme.toolSuccess
+    : theme.toolError;
+
+  const statusIcon = tool.status === "running" ? "\u23F3"
+    : tool.status === "success" ? "\u2713"
+    : "\u2717";
+
+  const outputLines = tool.output?.split("\n") ?? [];
+  const previewLines = 12;
+  const showFull = expanded || outputLines.length <= previewLines;
+  const displayOutput = showFull ? outputLines : outputLines.slice(0, previewLines);
+
+  return (
+    <Box flexDirection="column">
+      <Box>
+        <Text color={statusColor}>{statusIcon} {tool.name}</Text>
+        {tool.args && <Text dimColor> {tool.args}</Text>}
+      </Box>
+      {tool.output && (
+        <Box flexDirection="column" paddingLeft={2} borderStyle="single" borderColor={theme.border}>
+          {displayOutput.map((line, i) => (
+            <Text key={i} dimColor>{line}</Text>
+          ))}
+          {!showFull && <Text dimColor>... ({outputLines.length - previewLines} more lines)</Text>}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+// Keep backward compat export
+export { ChatLog as ChatView };
+
+// ─── Backward compatibility types ───
+// Legacy types for existing consumers (StatusBar, RouterPanel)
 
 export interface ToolCall {
   id: string;
@@ -13,139 +136,8 @@ export interface ToolCall {
   status: "running" | "completed" | "failed";
 }
 
-export interface ChatMessage {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  toolCalls?: ToolCall[];
-  timestamp?: Date;
-}
-
 export interface ChatViewProps {
   messages: ChatMessage[];
   isLoading?: boolean;
-  theme?: Theme;
   maxHeight?: number;
-}
-
-// ─── Tool Call Entry ───
-
-interface ToolCallEntryProps {
-  toolCall: ToolCall;
-  theme: Theme;
-}
-
-function ToolCallEntry({ toolCall, theme }: ToolCallEntryProps) {
-  const [expanded, setExpanded] = useState(false);
-
-  const statusIcon =
-    toolCall.status === "running"
-      ? "..."
-      : toolCall.status === "completed"
-        ? "+"
-        : "!";
-
-  const statusColor =
-    toolCall.status === "running"
-      ? theme.warning
-      : toolCall.status === "completed"
-        ? theme.success
-        : theme.error;
-
-  return (
-    <Box flexDirection="column" paddingLeft={2}>
-      <Box>
-        <Text color={statusColor}>[{statusIcon}] </Text>
-        <Text color={theme.accent}>{toolCall.name}</Text>
-        <Text color={theme.textDim}>
-          {expanded ? " (collapse)" : " (expand)"}
-        </Text>
-      </Box>
-      {expanded && (
-        <Box flexDirection="column" paddingLeft={2}>
-          <Text color={theme.textDim}>Input: {toolCall.input}</Text>
-          {toolCall.output && (
-            <Text color={theme.textDim}>Output: {toolCall.output}</Text>
-          )}
-        </Box>
-      )}
-    </Box>
-  );
-}
-
-// ─── Chat View ───
-
-export function ChatView({
-  messages,
-  isLoading = false,
-  theme = DEFAULT_THEME,
-  maxHeight = 20,
-}: ChatViewProps) {
-  // Slice messages to fit within maxHeight (simple scroll simulation)
-  const visibleMessages = messages.slice(-maxHeight);
-
-  return (
-    <Box flexDirection="column" borderStyle="round" borderColor={theme.textDim} paddingX={1}>
-      {visibleMessages.map((msg) => {
-        if (msg.role === "user") {
-          return (
-            <Box key={msg.id} flexDirection="column">
-              <Text color={theme.primary} bold>
-                You: {msg.content}
-              </Text>
-            </Box>
-          );
-        }
-
-        if (msg.role === "assistant") {
-          return (
-            <Box key={msg.id} flexDirection="column">
-              <Text color={theme.text}>{msg.content}</Text>
-              {msg.toolCalls && msg.toolCalls.length > 0 && (
-                <Box flexDirection="column" marginTop={1}>
-                  {msg.toolCalls.map((tc) => (
-                    <ToolCallEntry key={tc.id} toolCall={tc} theme={theme} />
-                  ))}
-                </Box>
-              )}
-            </Box>
-          );
-        }
-
-        // System messages
-        return (
-          <Box key={msg.id} flexDirection="column">
-            <Text color={theme.textDim} italic>
-              [system] {msg.content}
-            </Text>
-          </Box>
-        );
-      })}
-
-      {isLoading && (
-        <ThinkingIndicator theme={theme} />
-      )}
-    </Box>
-  );
-}
-
-// ─── Thinking Indicator (animated dots) ───
-
-const SPINNER_FRAMES = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
-
-function ThinkingIndicator({ theme }: { theme: Theme }) {
-  const [frame, setFrame] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFrame((f) => (f + 1) % SPINNER_FRAMES.length);
-    }, 80);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <Box marginTop={1}>
-      <Text color={theme.secondary}>{SPINNER_FRAMES[frame]} Thinking...</Text>
-    </Box>
-  );
 }

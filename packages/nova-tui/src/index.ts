@@ -1,29 +1,32 @@
 // ─── Guiguzi TUI ───
-// Terminal UI components (placeholder for Ink-based TUI)
+// OpenClaw-style vertical stack terminal UI
 
-export interface Theme {
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  text: string;
-  textDim: string;
-  error: string;
-  success: string;
-  warning: string;
-}
+export { getTheme, detectTheme, darkTheme, lightTheme, DEFAULT_THEME } from "./theme.js";
+export type { ThemePalette, Theme } from "./theme.js";
 
-export const DEFAULT_THEME: Theme = {
-  primary: "#00e5c7",
-  secondary: "#a78bfa",
-  accent: "#f5a623",
-  background: "#0a0c10",
-  text: "#e0e4ec",
-  textDim: "#6b7280",
-  error: "#ef4444",
-  success: "#22c55e",
-  warning: "#f5a623",
-};
+export { Header } from "./components/Header.js";
+export type { HeaderProps } from "./components/Header.js";
+
+export { ChatLog, ChatLog as ChatView } from "./components/ChatView.js";
+export type { ChatMessage, ToolCallDisplay, ChatLogProps } from "./components/ChatView.js";
+
+export { StatusLine } from "./components/StatusLine.js";
+export type { StatusLineProps } from "./components/StatusLine.js";
+
+export { Footer } from "./components/Footer.js";
+export type { FooterProps } from "./components/Footer.js";
+
+export { Editor } from "./components/Editor.js";
+export type { EditorProps } from "./components/Editor.js";
+
+export { StatusBar } from "./components/StatusBar.js";
+export type { StatusBarProps } from "./components/StatusBar.js";
+
+export { RouterPanel } from "./components/RouterPanel.js";
+export type { RouterPanelProps, ProviderHealth, RoutingDecision } from "./components/RouterPanel.js";
+
+export { slashCommands, parseSlashCommand, executeCommand } from "./slash-commands.js";
+export type { SlashCommand, CommandContext } from "./slash-commands.js";
 
 export function formatRouterDecision(decision: {
   providerId: string;
@@ -42,14 +45,3 @@ export function formatHealthStatus(status: "healthy" | "degraded" | "unavailable
     case "unavailable": return "✗ unavailable";
   }
 }
-
-// ─── Ink Components ───
-
-export { ChatView } from "./components/ChatView.js";
-export type { ChatViewProps, ChatMessage, ToolCall } from "./components/ChatView.js";
-
-export { StatusBar } from "./components/StatusBar.js";
-export type { StatusBarProps } from "./components/StatusBar.js";
-
-export { RouterPanel } from "./components/RouterPanel.js";
-export type { RouterPanelProps, ProviderHealth, RoutingDecision } from "./components/RouterPanel.js";

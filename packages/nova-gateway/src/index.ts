@@ -1,5 +1,6 @@
 // ─── Guiguzi Gateway ───
-// Multi-channel gateway: Feishu, Slack, Discord, Web
+// Multi-channel gateway: Feishu, Slack, Discord, Web, Telegram, WhatsApp,
+// Matrix, MS Teams, LINE, IRC, Google Chat, Mattermost, SMS, Nostr, QQ Bot
 
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
@@ -11,6 +12,17 @@ import {
   parseSlackEvent,
   parseDiscordInteraction,
   parseWebChat,
+  parseTelegramUpdate,
+  parseWhatsAppMessage,
+  parseMatrixEvent,
+  parseMSTeamsActivity,
+  parseLineWebhook,
+  parseIrcMessage,
+  parseGoogleChatEvent,
+  parseMattermostEvent,
+  parseSmsWebhook,
+  parseNostrEvent,
+  parseQQBotEvent,
 } from "./channels/index.js";
 import { RateLimiter } from "./rate-limiter.js";
 import type { RateLimiterConfig } from "./rate-limiter.js";
@@ -28,7 +40,9 @@ export interface GatewayConfig {
 }
 
 export interface ChannelConfig {
-  type: "feishu" | "slack" | "discord" | "web";
+  type: "feishu" | "slack" | "discord" | "web" | "telegram" | "whatsapp"
+    | "matrix" | "msteams" | "line" | "irc" | "googlechat" | "mattermost"
+    | "sms" | "nostr" | "qqbot";
   name: string;
   config: Record<string, unknown>;
   bindings: ChannelBinding[];
@@ -202,6 +216,204 @@ export class Gateway {
 
       return c.json({ type: 4 });
     });
+
+    // ─── Telegram Webhook ───
+    this.app.post("/webhook/telegram", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`telegram:${clientIp}`)) {
+        return c.json({ ok: false, error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseTelegramUpdate(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [telegram] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ ok: true });
+    });
+
+    // ─── WhatsApp Webhook ───
+    this.app.post("/webhook/whatsapp", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`whatsapp:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseWhatsAppMessage(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [whatsapp] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: 200 });
+    });
+
+    // ─── Matrix Webhook ───
+    this.app.post("/webhook/matrix", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`matrix:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseMatrixEvent(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [matrix] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
+
+    // ─── MS Teams Webhook ───
+    this.app.post("/webhook/msteams", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`msteams:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseMSTeamsActivity(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [msteams] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: 200 });
+    });
+
+    // ─── LINE Webhook ───
+    this.app.post("/webhook/line", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`line:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseLineWebhook(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [line] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
+
+    // ─── IRC Webhook ───
+    this.app.post("/webhook/irc", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`irc:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseIrcMessage(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [irc] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
+
+    // ─── Google Chat Webhook ───
+    this.app.post("/webhook/googlechat", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`googlechat:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseGoogleChatEvent(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [googlechat] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
+
+    // ─── Mattermost Webhook ───
+    this.app.post("/webhook/mattermost", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`mattermost:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseMattermostEvent(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [mattermost] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
+
+    // ─── SMS (Twilio) Webhook ───
+    this.app.post("/webhook/sms", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`sms:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseSmsWebhook(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [sms] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
+
+    // ─── Nostr Webhook ───
+    this.app.post("/webhook/nostr", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`nostr:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseNostrEvent(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [nostr] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
+
+    // ─── QQ Bot Webhook ───
+    this.app.post("/webhook/qqbot", async (c) => {
+      const body = await c.req.json();
+
+      const clientIp = c.req.header("x-forwarded-for") ?? "unknown";
+      if (!this.rateLimiter.consume(`qqbot:${clientIp}`)) {
+        return c.json({ error: "Rate limit exceeded" }, 429);
+      }
+
+      const msg = parseQQBotEvent(body);
+      if (msg) {
+        console.log(`⟨nova⟩ [qqbot] ${msg.sender}: ${msg.content}`);
+        this.enqueueMessage(msg);
+      }
+
+      return c.json({ status: "ok" });
+    });
   }
 
   /**
@@ -278,7 +490,30 @@ export class Gateway {
 }
 
 // Re-export channel parsers for external consumers
-export { parseFeishuEvent, parseSlackEvent, parseDiscordInteraction, parseWebChat } from "./channels/index.js";
+export {
+  parseFeishuEvent,
+  parseSlackEvent,
+  parseDiscordInteraction,
+  parseWebChat,
+  parseTelegramUpdate,
+  parseWhatsAppMessage,
+  parseMatrixEvent,
+  parseMSTeamsActivity,
+  parseLineWebhook,
+  parseIrcMessage,
+  parseGoogleChatEvent,
+  parseMattermostEvent,
+  parseSmsWebhook,
+  parseNostrEvent,
+  parseQQBotEvent,
+} from "./channels/index.js";
+export type {
+  ChannelId,
+  ChannelMeta,
+  ChannelCapabilities,
+  ChannelPlugin,
+} from "./channels/index.js";
+export { defineChannelPlugin } from "./channels/index.js";
 
 // Re-export enhancement modules
 export { RateLimiter } from "./rate-limiter.js";

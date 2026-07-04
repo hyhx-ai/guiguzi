@@ -155,5 +155,9 @@ export {
   PROVIDER_CATALOG,
   type ProviderCatalogEntry,
 } from "./registry.js";
-export { loadConfig, applyConfigToEnv, type GuiguziConfig } from "./config.js";
+export {
+  loadConfig, applyConfigToEnv, migrateConfig, resolveApiKey,
+  persistEnvVar, getProviderEnvKey, writeConfigSecure,
+  type GuiguziConfig,
+} from "./config.js";
 export { classifyTask } from "./classifier.js";

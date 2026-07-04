@@ -11,7 +11,11 @@ import {
   resetProviderRegistry,
   createProvider,
   PROVIDER_CATALOG,
+  persistEnvVar,
+  getProviderEnvKey,
+  writeConfigSecure,
   type ModelInfo,
+  type GuiguziConfig,
 } from "@guiguzi/ai";
 import { startConsoleServer } from "@guiguzi/web";
 import { renderAgentApp } from "./render.js";
@@ -84,6 +88,11 @@ program
           rl.close();
           process.exit(1);
         }
+        // Persist key to environment variable (current process + shell profile)
+        const envKey = getProviderEnvKey(selectedId);
+        if (envKey) {
+          persistEnvVar(envKey, apiKey);
+        }
       }
 
       // Step 3: Create ONLY the selected provider and fetch models dynamically
@@ -117,24 +126,24 @@ program
         }
       }
 
-      // Save config
-      const { writeFile, mkdir } = await import("node:fs/promises");
+      // Save config (keyRef only — never plaintext key)
+      const { mkdir } = await import("node:fs/promises");
       const { join } = await import("node:path");
       const configDir = join(process.env.HOME ?? process.env.USERPROFILE ?? ".", ".guiguzi");
-      const configFile = join(configDir, "guiguzi.json");
+      const envKeyName = getProviderEnvKey(selectedId);
       const config = {
         version: VERSION,
         provider: selectedId,
         model: modelId ?? "default",
-        apiKey,
+        keyRef: envKeyName,
         router: { strategy: "hybrid" },
         gateway: { port: 18789, channels: [] },
         workspace: join(process.env.HOME ?? process.env.USERPROFILE ?? ".", ".guiguzi", "workspace"),
         daemon: { installed: false },
       };
       await mkdir(configDir, { recursive: true });
-      await writeFile(configFile, JSON.stringify(config, null, 2));
-      console.log(`\n✓ Configuration saved to ${configFile}`);
+      writeConfigSecure(config);
+      console.log(`\n✓ Configuration saved to ${configDir}/guiguzi.json`);
 
       // Register ONLY the selected provider in the global registry
       resetProviderRegistry();
@@ -366,6 +375,12 @@ program
       let apiKey = "";
       if (provider !== "ollama") {
         apiKey = await ask(`Enter ${catalogName} API key`);
+        if (apiKey) {
+          const envKey = getProviderEnvKey(provider);
+          if (envKey) {
+            persistEnvVar(envKey, apiKey);
+          }
+        }
       }
 
       // Step 2: Model selection
@@ -432,12 +447,12 @@ program
           bindings: [],
         }));
 
-      // Build config
+      // Build config (keyRef only — never plaintext key)
       config = {
         version: VERSION,
         provider,
         model,
-        apiKey: apiKey,
+        keyRef: getProviderEnvKey(provider),
         router: { strategy: "hybrid" },
         gateway: { port, channels },
         workspace,
@@ -447,9 +462,9 @@ program
       rl.close();
     }
 
-    // Save config
+    // Save config with secure permissions
     await mkdir(configDir, { recursive: true });
-    await writeFile(configFile, JSON.stringify(config, null, 2));
+    writeConfigSecure(config as GuiguziConfig);
     console.log(`\n✓ Configuration saved to ${configFile}`);
 
     // Create workspace
@@ -512,7 +527,7 @@ WantedBy=default.target
         console.log("  Run as Admin: schtasks /create /tn GuiguziGateway /tr \"guiguzi gateway start\" /sc onlogon /rl highest");
       }
       config.daemon = { installed: true };
-      await writeFile(configFile, JSON.stringify(config, null, 2));
+      writeConfigSecure(config as GuiguziConfig);
     }
 
     // Health check

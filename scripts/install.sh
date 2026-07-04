@@ -112,18 +112,74 @@ ensure_git() {
 
 # Install Guiguzi via npm
 install_guiguzi() {
-  info "Installing Guiguzi via npm..."
+  info "Installing Guiguzi..."
 
+  # Try npm first
   if npm install -g "$NPM_PACKAGE@latest" 2>/dev/null; then
     ok "Guiguzi installed via npm"
+    return
+  fi
+
+  # If npm fails with 404 (not published yet), install from source
+  local npm_log="$HOME/.npm/_logs"
+  if ls "$npm_log"/*404* &>/dev/null 2>&1 || ls "$npm_log"/*E404* &>/dev/null 2>&1; then
+    warn "Package not on npm yet, installing from source..."
   else
-    warn "Global npm install failed (EACCES?), trying user prefix..."
+    warn "npm install failed, trying user prefix..."
     mkdir -p "$HOME/.npm-global"
     npm config set prefix "$HOME/.npm-global"
     export PATH="$HOME/.npm-global/bin:$PATH"
-    npm install -g "$NPM_PACKAGE@latest"
-    ok "Guiguzi installed to ~/.npm-global"
+    if npm install -g "$NPM_PACKAGE@latest" 2>/dev/null; then
+      ok "Guiguzi installed to ~/.npm-global"
+      return
+    fi
+    warn "npm install still failed, falling back to source install..."
   fi
+
+  # Install from GitHub source
+  local src_dir="$HOME/.guiguzi/src"
+  if [ -d "$src_dir/guiguzi" ]; then
+    info "Updating existing source..."
+    cd "$src_dir/guiguzi" && git pull --ff-only
+  else
+    info "Cloning from GitHub..."
+    mkdir -p "$src_dir"
+    git clone --depth 1 "$REPO_URL" "$src_dir/guiguzi"
+    cd "$src_dir/guiguzi"
+  fi
+
+  # Install pnpm and build
+  if ! command -v pnpm &>/dev/null; then
+    npm install -g pnpm
+  fi
+  pnpm install --frozen-lockfile
+  pnpm build
+
+  # Create wrapper script
+  mkdir -p "$HOME/.local/bin"
+  cat > "$HOME/.local/bin/guiguzi" << GUIGUZI_WRAPPER
+#!/usr/bin/env bash
+SCRIPT_DIR="$(cd "\$(dirname "\$0")" && pwd)"
+GUIGUZI_ROOT="$src_dir/guiguzi"
+export NODE_PATH="\$GUIGUZI_ROOT/node_modules"
+exec node "\$GUIGUZI_ROOT/packages/nova-cli/dist/index.js" "\$@"
+GUIGUZI_WRAPPER
+  chmod +x "$HOME/.local/bin/guiguzi"
+
+  # Add to PATH if needed
+  if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+    export PATH="$HOME/.local/bin:$PATH"
+    local shell_rc=""
+    if [ -n "${BASH_VERSION:-}" ]; then shell_rc="$HOME/.bashrc"
+    elif [ -n "${ZSH_VERSION:-}" ]; then shell_rc="$HOME/.zshrc"
+    fi
+    if [ -n "$shell_rc" ] && ! grep -q ".local/bin" "$shell_rc" 2>/dev/null; then
+      echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$shell_rc"
+      ok "Added ~/.local/bin to PATH in $shell_rc"
+    fi
+  fi
+
+  ok "Guiguzi installed from source at $src_dir/guiguzi"
 }
 
 # Post-install

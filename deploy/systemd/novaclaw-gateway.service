@@ -1,0 +1,31 @@
+[Unit]
+Description=NovaClaw Multi-Channel Gateway
+Documentation=https://github.com/novaclaw/novaclaw
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=novaclaw
+Group=novaclaw
+ExecStart=/usr/bin/node /opt/novaclaw/packages/nova-gateway/dist/index.js
+WorkingDirectory=/opt/novaclaw
+Restart=on-failure
+RestartSec=5
+
+# Environment
+EnvironmentFile=/etc/novaclaw/env
+Environment=NODE_ENV=production
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/novaclaw /var/log/novaclaw
+
+# Resource limits
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,34 @@
+{
+  "name": "@novaclaw/agent-core",
+  "version": "0.1.0-alpha",
+  "description": "NovaClaw Agent runtime - tool orchestration, tree-structured conversations, context compression",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@novaclaw/ai": "workspace:*",
+    "@novaclaw/router": "workspace:*"
+  },
+  "devDependencies": {
+    "@novaclaw/sdk": "workspace:*",
+    "@novaclaw/gateway": "workspace:*",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "files": ["dist"],
+  "license": "MIT"
+}

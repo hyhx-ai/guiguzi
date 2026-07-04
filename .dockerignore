@@ -1,0 +1,17 @@
+node_modules
+*/node_modules
+**/dist
+**/.turbo
+.git
+.gitignore
+*.md
+.env
+.env.*
+!.env.example
+deploy/
+docs/
+**/*.test.ts
+**/__tests__
+.vscode
+.idea
+coverage

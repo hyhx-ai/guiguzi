@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NovaClaw Console</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #00e5c7;
+      --primary-dim: #00b89e;
+      --secondary: #a78bfa;
+      --secondary-dim: #8b6fdb;
+      --bg: #0a0c10;
+      --bg-card: #12151c;
+      --bg-card-hover: #181c26;
+      --border: #1e2330;
+      --border-light: #2a3042;
+      --text: #e4e7ef;
+      --text-dim: #8891a5;
+      --text-muted: #5a6378;
+      --danger: #f87171;
+      --warning: #fbbf24;
+      --success: #34d399;
+      --info: #60a5fa;
+      --radius: 10px;
+      --radius-sm: 6px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.35);
+      --transition: 0.2s ease;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #0e1117 0%, #131720 100%);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: var(--text);
+    }
+
+    .header h1 span {
+      color: var(--primary);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .badge-version {
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--secondary);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+    }
+
+    .badge-status {
+      background: rgba(0, 229, 199, 0.1);
+      color: var(--primary);
+      border: 1px solid rgba(0, 229, 199, 0.2);
+    }
+
+    .badge-status .pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .refresh-indicator {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .refresh-indicator .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: pulse 2s infinite;
+    }
+
+    /* ── Tab Navigation ───────────────────────────────────────── */
+    .tab-nav {
+      display: flex;
+      gap: 0;
+      padding: 0 32px;
+      background: linear-gradient(135deg, #0e1117 0%, #131720 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tab-btn {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      letter-spacing: 0.3px;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-dim);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* ── Layout ───────────────────────────────────────────────── */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 32px 48px;
+    }
+
+    /* ── Stats Cards ──────────────────────────────────────────── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .stat-card:nth-child(1)::before { background: var(--primary); }
+    .stat-card:nth-child(2)::before { background: var(--secondary); }
+    .stat-card:nth-child(3)::before { background: var(--info); }
+    .stat-card:nth-child(4)::before { background: var(--success); }
+
+    .stat-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-light);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1.1;
+    }
+
+    .stat-card:nth-child(1) .stat-value { color: var(--primary); }
+    .stat-card:nth-child(2) .stat-value { color: var(--secondary); }
+    .stat-card:nth-child(3) .stat-value { color: var(--info); }
+    .stat-card:nth-child(4) .stat-value { color: var(--success); }
+
+    .stat-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* ── Main Grid ────────────────────────────────────────────── */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .panel-title .icon {
+      font-size: 16px;
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    /* ── Router Visualization ─────────────────────────────────── */
+    .panel-viz {
+      grid-column: 1 / -1;
+    }
+
+    .viz-container {
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .viz-container .mermaid {
+      width: 100%;
+    }
+
+    .viz-container .mermaid svg {
+      max-width: 100%;
+    }
+
+    .viz-empty {
+      color: var(--text-muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 40px;
+    }
+
+    .viz-empty .icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      opacity: 0.4;
+    }
+
+    /* ── Event Log Table ──────────────────────────────────────── */
+    .event-table-wrap {
+      max-height: 420px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+    }
+
+    .event-table-wrap::-webkit-scrollbar {
+      width: 6px;
+    }
+    .event-table-wrap::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .event-table-wrap::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 3px;
+    }
+
+    .event-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .event-table thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    .event-table th {
+      background: #0e1117;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .event-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+      vertical-align: middle;
+    }
+
+    .event-table tbody tr {
+      transition: background var(--transition);
+    }
+
+    .event-table tbody tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .event-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .event-type.decision {
+      background: rgba(0, 229, 199, 0.12);
+      color: var(--primary);
+    }
+    .event-type.failover {
+      background: rgba(251, 191, 36, 0.12);
+      color: var(--warning);
+    }
+    .event-type.fallback {
+      background: rgba(248, 113, 113, 0.12);
+      color: var(--danger);
+    }
+    .event-type.budget_exceeded {
+      background: rgba(167, 139, 250, 0.12);
+      color: var(--secondary);
+    }
+
+    .model-cell {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .score-cell {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-weight: 600;
+    }
+
+    .score-high { color: var(--success); }
+    .score-mid { color: var(--warning); }
+    .score-low { color: var(--danger); }
+
+    .time-cell {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      white-space: nowrap;
+      color: var(--text-muted);
+    }
+
+    .reason-cell {
+      max-width: 240px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--text-muted);
+    }
+
+    .empty-state .icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+    }
+
+    /* ── Chat Interface ───────────────────────────────────────── */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 220px);
+      min-height: 500px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .chat-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: #0e1117;
+    }
+
+    .chat-toolbar select {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      min-width: 200px;
+    }
+
+    .chat-toolbar select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .btn {
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light);
+      background: var(--bg-card);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--bg);
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dim);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: rgba(248, 113, 113, 0.1);
+    }
+
+    .btn-sm {
+      padding: 4px 10px;
+      font-size: 12px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: var(--border-light);
+      border-radius: 3px;
+    }
+
+    .chat-msg {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .chat-msg-role {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      min-width: 70px;
+      padding-top: 4px;
+    }
+
+    .chat-msg-role.user { color: var(--info); }
+    .chat-msg-role.assistant { color: var(--primary); }
+    .chat-msg-role.system { color: var(--text-muted); }
+
+    .chat-msg-content {
+      background: #0e1117;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-dim);
+      max-width: 80%;
+      word-break: break-word;
+    }
+
+    .chat-msg-time {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 10px;
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      background: #0e1117;
+    }
+
+    .chat-input-area textarea {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: none;
+      min-height: 42px;
+      max-height: 120px;
+    }
+
+    .chat-input-area textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .chat-input-area textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* ── Data Tables (Sessions & Providers) ───────────────────── */
+    .data-table-wrap {
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-light) transparent;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      background: #0e1117;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+      vertical-align: middle;
+    }
+
+    .data-table tbody tr {
+      transition: background var(--transition);
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-enabled {
+      background: rgba(52, 211, 153, 0.12);
+      color: var(--success);
+    }
+
+    .status-disabled {
+      background: rgba(248, 113, 113, 0.12);
+      color: var(--danger);
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* ── Provider Form ────────────────────────────────────────── */
+    .provider-form-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .provider-form-overlay.visible {
+      display: flex;
+    }
+
+    .provider-form {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      width: 440px;
+      max-width: 90vw;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .provider-form h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      background: #0e1117;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* ── Test Result Toast ────────────────────────────────────── */
+    .test-result {
+      margin-top: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      display: none;
+    }
+
+    .test-result.visible {
+      display: block;
+    }
+
+    .test-result.success {
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+      color: var(--success);
+    }
+
+    .test-result.error {
+      background: rgba(248, 113, 113, 0.1);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+      color: var(--danger);
+    }
+
+    /* ── Section header ───────────────────────────────────────── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .section-header h2 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    .footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+    }
+
+    .footer a {
+      color: var(--primary-dim);
+      text-decoration: none;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+      .container {
+        padding: 16px 20px 32px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .header {
+        padding: 12px 16px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .header h1 {
+        font-size: 17px;
+      }
+      .stat-value {
+        font-size: 26px;
+      }
+      .container {
+        padding: 12px 12px 24px;
+      }
+      .tab-nav {
+        padding: 0 12px;
+      }
+      .tab-btn {
+        padding: 10px 14px;
+        font-size: 12px;
+      }
+    }
+
+    /* ── Loading skeleton ─────────────────────────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--border) 25%, var(--border-light) 50%, var(--border) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-value {
+      height: 38px;
+      width: 80px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">NC</div>
+      <h1><span>Nova</span>Claw Console</h1>
+      <span class="badge badge-version" id="version-badge">v0.1.0</span>
+    </div>
+    <div class="header-right">
+      <span class="badge badge-status"><span class="pulse"></span>Live</span>
+      <span class="refresh-indicator">
+        <span class="dot"></span>
+        Auto-refresh 5s
+      </span>
+    </div>
+  </header>
+
+  <!-- ── Tab Navigation ──────────────────────────────────────── -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+    <button class="tab-btn" data-tab="chat">Chat</button>
+    <button class="tab-btn" data-tab="sessions">Sessions</button>
+    <button class="tab-btn" data-tab="providers">Providers</button>
+  </nav>
+
+  <!-- ── Dashboard Tab ───────────────────────────────────────── -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="container">
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Requests</div>
+          <div class="stat-value" id="stat-requests">
+            <div class="skeleton skeleton-value"></div>
+          </div>
+          <div class="stat-sub">routed decisions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Daily Cost</div>
+          <div class="stat-value" id="stat-cost">
+            <div class="skeleton skeleton-value"></div>
+          </div>
+          <div class="stat-sub">today's spend</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Active Agents</div>
+          <div class="stat-value" id="stat-agents">
+            <div class="skeleton skeleton-value"></div>
+          </div>
+          <div class="stat-sub">connected sessions</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Provider Health</div>
+          <div class="stat-value" id="stat-health">
+            <div class="skeleton skeleton-value"></div>
+          </div>
+          <div class="stat-sub">healthy endpoints</div>
+        </div>
+      </div>
+
+      <!-- Router Visualization -->
+      <div class="main-grid">
+        <div class="panel panel-viz">
+          <div class="panel-header">
+            <span class="panel-title">
+              <span class="icon">&#9672;</span>
+              Router Visualization
+            </span>
+            <span style="font-size:12px;color:var(--text-muted)" id="viz-count"></span>
+          </div>
+          <div class="panel-body">
+            <div class="viz-container" id="viz-container">
+              <div class="viz-empty">
+                <div class="icon">&#9672;</div>
+                <p>Waiting for routing data...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Log -->
+        <div class="panel" style="grid-column: 1 / -1;">
+          <div class="panel-header">
+            <span class="panel-title">
+              <span class="icon">&#9776;</span>
+              Event Log
+            </span>
+            <span style="font-size:12px;color:var(--text-muted)" id="event-count">0 events</span>
+          </div>
+          <div class="panel-body" style="padding:0;">
+            <div class="event-table-wrap">
+              <table class="event-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Task</th>
+                    <th>Model</th>
+                    <th>Score</th>
+                    <th>Reason</th>
+                  </tr>
+                </thead>
+                <tbody id="event-tbody">
+                  <tr>
+                    <td colspan="6">
+                      <div class="empty-state">
+                        <div class="icon">&#9776;</div>
+                        <p>No events recorded yet</p>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Chat Tab ────────────────────────────────────────────── -->
+  <div class="tab-content" id="tab-chat">
+    <div class="container">
+      <div class="chat-container">
+        <div class="chat-toolbar">
+          <select id="chat-session-select">
+            <option value="">-- Select a session --</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="btn-new-session">+ New Session</button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+          <div class="empty-state">
+            <div class="icon">&#128172;</div>
+            <p>Select or create a session to start chatting</p>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
+          <button class="btn btn-primary" id="btn-send">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Sessions Tab ────────────────────────────────────────── -->
+  <div class="tab-content" id="tab-sessions">
+    <div class="container">
+      <div class="section-header">
+        <h2>Sessions</h2>
+        <button class="btn btn-primary btn-sm" id="btn-create-session">+ New Session</button>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0;">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Messages</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sessions-tbody">
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <div class="icon">&#128196;</div>
+                      <p>No sessions yet</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Providers Tab ───────────────────────────────────────── -->
+  <div class="tab-content" id="tab-providers">
+    <div class="container">
+      <div class="section-header">
+        <h2>Providers</h2>
+        <button class="btn btn-primary btn-sm" id="btn-add-provider">+ Add Provider</button>
+      </div>
+      <div class="panel">
+        <div class="panel-body" style="padding:0;">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Type</th>
+                  <th>Models</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="providers-tbody">
+                <tr>
+                  <td colspan="5">
+                    <div class="empty-state">
+                      <div class="icon">&#9881;</div>
+                      <p>No providers configured</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="test-result" id="provider-test-result"></div>
+    </div>
+  </div>
+
+  <!-- ── Add Provider Modal ──────────────────────────────────── -->
+  <div class="provider-form-overlay" id="provider-form-overlay">
+    <div class="provider-form">
+      <h3>Add Provider</h3>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="provider-type">
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="google">Google</option>
+          <option value="azure">Azure OpenAI</option>
+          <option value="ollama">Ollama</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Name</label>
+        <input type="text" id="provider-name" placeholder="e.g. My OpenAI Provider" />
+      </div>
+      <div class="form-group">
+        <label>API Key</label>
+        <input type="password" id="provider-apikey" placeholder="sk-..." />
+      </div>
+      <div class="form-group">
+        <label>Base URL</label>
+        <input type="text" id="provider-baseurl" placeholder="https://api.openai.com/v1" />
+      </div>
+      <div class="form-actions">
+        <button class="btn" id="btn-cancel-provider">Cancel</button>
+        <button class="btn btn-primary" id="btn-save-provider">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Footer ──────────────────────────────────────────────── -->
+  <footer class="footer">
+    NovaClaw v0.1.0-alpha &mdash; Intelligent AI Routing Engine
+  </footer>
+
+  <!-- ── Scripts ─────────────────────────────────────────────── -->
+  <script>
+    (function () {
+      'use strict';
+
+      // ── Mermaid Init ────────────────────────────────────────
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        themeVariables: {
+          primaryColor: '#00e5c7',
+          primaryTextColor: '#e4e7ef',
+          primaryBorderColor: '#1e2330',
+          lineColor: '#2a3042',
+          secondaryColor: '#a78bfa',
+          tertiaryColor: '#12151c',
+          background: '#12151c',
+          mainBkg: '#181c26',
+          nodeBorder: '#00e5c7',
+          clusterBkg: '#0e1117',
+          clusterBorder: '#1e2330',
+          titleColor: '#e4e7ef',
+          edgeLabelBackground: '#0a0c10',
+        },
+        flowchart: {
+          htmlLabels: true,
+          curve: 'basis',
+          padding: 16,
+          nodeSpacing: 40,
+          rankSpacing: 50,
+        },
+      });
+
+      // ── State ───────────────────────────────────────────────
+      let lastMermaidDef = '';
+      let mermaidCounter = 0;
+      let currentChatSessionId = '';
+
+      // ── Helpers ─────────────────────────────────────────────
+      function formatNumber(n) {
+        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+        return String(n);
+      }
+
+      function formatCost(n) {
+        if (n === 0) return '$0.00';
+        if (n < 0.01) return '$' + n.toFixed(4);
+        return '$' + n.toFixed(2);
+      }
+
+      function formatTime(ts) {
+        var d = new Date(ts);
+        var h = String(d.getHours()).padStart(2, '0');
+        var m = String(d.getMinutes()).padStart(2, '0');
+        var s = String(d.getSeconds()).padStart(2, '0');
+        return h + ':' + m + ':' + s;
+      }
+
+      function formatDate(ts) {
+        var d = new Date(ts);
+        return d.toLocaleDateString() + ' ' + formatTime(ts);
+      }
+
+      function scoreClass(score) {
+        if (score >= 70) return 'score-high';
+        if (score >= 40) return 'score-mid';
+        return 'score-low';
+      }
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+
+      function fetchJSON(url, options) {
+        return fetch(url, options).then(function (res) {
+          if (!res.ok) return res.json().then(function (err) { throw err; });
+          return res.json();
+        });
+      }
+
+      // ── Tab Switching ───────────────────────────────────────
+      var tabBtns = document.querySelectorAll('.tab-btn');
+      var tabContents = document.querySelectorAll('.tab-content');
+
+      tabBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var target = btn.getAttribute('data-tab');
+
+          tabBtns.forEach(function (b) { b.classList.remove('active'); });
+          tabContents.forEach(function (c) { c.classList.remove('active'); });
+
+          btn.classList.add('active');
+          document.getElementById('tab-' + target).classList.add('active');
+
+          // Load data when switching tabs
+          if (target === 'sessions') loadSessions();
+          if (target === 'providers') loadProviders();
+          if (target === 'chat') loadChatSessions();
+        });
+      });
+
+      // ── Render Stats ────────────────────────────────────────
+      function renderStats(stats) {
+        document.getElementById('stat-requests').textContent = formatNumber(stats.totalRequests);
+        document.getElementById('stat-cost').textContent = formatCost(stats.dailyCost);
+        document.getElementById('stat-agents').textContent = formatNumber(stats.activeAgents);
+
+        var healthCount = Object.keys(stats.providerHealth).length;
+        document.getElementById('stat-health').textContent = String(healthCount);
+      }
+
+      // ── Render Event Table ──────────────────────────────────
+      function renderEvents(events) {
+        var tbody = document.getElementById('event-tbody');
+        var countEl = document.getElementById('event-count');
+        countEl.textContent = events.length + ' event' + (events.length !== 1 ? 's' : '');
+
+        if (events.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="6"><div class="empty-state">' +
+            '<div class="icon">&#9776;</div>' +
+            '<p>No events recorded yet</p></div></td></tr>';
+          return;
+        }
+
+        var reversed = events.slice().reverse();
+        var html = '';
+
+        for (var i = 0; i < reversed.length; i++) {
+          var e = reversed[i];
+          var taskType = (e.task && e.task.type) ? e.task.type : '-';
+          var modelId = (e.decision && e.decision.modelId) ? e.decision.modelId : '-';
+          var score = (e.decision && typeof e.decision.score === 'number') ? e.decision.score : null;
+          var reason = e.reason || (e.decision && e.decision.reason) || '-';
+
+          var scoreHtml = score !== null
+            ? '<span class="score-cell ' + scoreClass(score) + '">' + score.toFixed(1) + '</span>'
+            : '<span style="color:var(--text-muted)">-</span>';
+
+          html +=
+            '<tr>' +
+            '<td class="time-cell">' + escapeHtml(formatTime(e.timestamp)) + '</td>' +
+            '<td><span class="event-type ' + e.type + '">' + escapeHtml(e.type) + '</span></td>' +
+            '<td>' + escapeHtml(taskType) + '</td>' +
+            '<td class="model-cell">' + escapeHtml(modelId) + '</td>' +
+            '<td>' + scoreHtml + '</td>' +
+            '<td class="reason-cell" title="' + escapeHtml(reason) + '">' + escapeHtml(reason) + '</td>' +
+            '</tr>';
+        }
+
+        tbody.innerHTML = html;
+      }
+
+      // ── Render Mermaid Diagram ──────────────────────────────
+      function renderVisualization(events) {
+        var container = document.getElementById('viz-container');
+        var countEl = document.getElementById('viz-count');
+
+        var decisions = events.filter(function (e) {
+          return e.type === 'decision' && e.decision && e.task;
+        });
+
+        var recent = decisions.slice(-10);
+        countEl.textContent = recent.length + ' routing decision' + (recent.length !== 1 ? 's' : '');
+
+        if (recent.length === 0) {
+          container.innerHTML =
+            '<div class="viz-empty">' +
+            '<div class="icon">&#9672;</div>' +
+            '<p>Waiting for routing data...</p></div>';
+          lastMermaidDef = '';
+          return;
+        }
+
+        var lines = ['graph LR'];
+        var seen = {};
+        var idx = 0;
+
+        for (var i = 0; i < recent.length; i++) {
+          var e = recent[i];
+          var taskType = e.task.type;
+          var modelId = e.decision.modelId;
+          var score = e.decision.score.toFixed(1);
+
+          var taskKey = taskType.replace(/[^a-zA-Z0-9]/g, '_');
+          var modelKey = modelId.replace(/[^a-zA-Z0-9]/g, '_');
+
+          if (!seen[taskKey]) {
+            seen[taskKey] = true;
+            lines.push('  ' + taskKey + '["' + taskType + '"]');
+          }
+          if (!seen[modelKey]) {
+            seen[modelKey] = true;
+            lines.push('  ' + modelKey + '["' + modelId + '"]');
+          }
+
+          lines.push('  ' + taskKey + ' -->|"score: ' + score + '"| ' + modelKey);
+        }
+
+        var def = lines.join('\n');
+
+        if (def === lastMermaidDef) return;
+        lastMermaidDef = def;
+
+        mermaidCounter++;
+        var id = 'mermaid-' + mermaidCounter;
+        container.innerHTML = '<div class="' + id + '-wrap"></div>';
+        var target = container.firstChild;
+
+        mermaid.render(id, def).then(function (result) {
+          target.innerHTML = result.svg;
+        }).catch(function (err) {
+          target.innerHTML = '<div class="viz-empty"><p>Diagram render error</p></div>';
+          console.error('Mermaid render error:', err);
+        });
+      }
+
+      // ── Dashboard Fetch & Update ────────────────────────────
+      function updateDashboard() {
+        Promise.all([
+          fetchJSON('/api/stats').catch(function () { return null; }),
+          fetchJSON('/api/events').catch(function () { return null; }),
+        ]).then(function (results) {
+          var stats = results[0];
+          var eventsData = results[1];
+
+          if (stats) {
+            renderStats(stats);
+          }
+
+          var events = eventsData || (stats && stats.recentEvents) || [];
+          renderEvents(events);
+          renderVisualization(events);
+        }).catch(function (err) {
+          console.error('Update error:', err);
+        });
+      }
+
+      // ── Sessions ────────────────────────────────────────────
+      function loadSessions() {
+        fetchJSON('/api/sessions').then(function (sessions) {
+          renderSessionsTable(sessions);
+        }).catch(function () {});
+      }
+
+      function renderSessionsTable(sessions) {
+        var tbody = document.getElementById('sessions-tbody');
+
+        if (!sessions || sessions.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5"><div class="empty-state">' +
+            '<div class="icon">&#128196;</div>' +
+            '<p>No sessions yet</p></div></td></tr>';
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < sessions.length; i++) {
+          var s = sessions[i];
+          html +=
+            '<tr>' +
+            '<td class="mono">' + escapeHtml(s.id.slice(0, 8)) + '...</td>' +
+            '<td>' + escapeHtml(s.name) + '</td>' +
+            '<td>' + s.messageCount + '</td>' +
+            '<td class="mono">' + escapeHtml(formatDate(s.createdAt)) + '</td>' +
+            '<td class="actions-cell">' +
+              '<button class="btn btn-sm" onclick="viewSessionMessages(\'' + s.id + '\')">View</button>' +
+              '<button class="btn btn-sm btn-danger" onclick="deleteSession(\'' + s.id + '\')">Delete</button>' +
+            '</td>' +
+            '</tr>';
+        }
+        tbody.innerHTML = html;
+      }
+
+      window.viewSessionMessages = function (id) {
+        fetchJSON('/api/sessions/' + id).then(function (data) {
+          var msgs = data.messages || [];
+          var tbody = document.getElementById('sessions-tbody');
+          var html = '';
+          if (msgs.length === 0) {
+            html = '<tr><td colspan="5"><div class="empty-state"><p>No messages in this session</p></div></td></tr>';
+          } else {
+            for (var i = 0; i < msgs.length; i++) {
+              var m = msgs[i];
+              html +=
+                '<tr>' +
+                '<td class="mono">' + escapeHtml(m.role) + '</td>' +
+                '<td colspan="3">' + escapeHtml(m.content) + '</td>' +
+                '<td class="mono">' + escapeHtml(formatTime(m.timestamp)) + '</td>' +
+                '</tr>';
+            }
+          }
+          // Replace table content with messages view
+          var table = tbody.closest('table');
+          var thead = table.querySelector('thead');
+          thead.innerHTML = '<tr><th>Role</th><th colspan="3">Content</th><th>Time</th></tr>';
+          tbody.innerHTML = html;
+        }).catch(function () {});
+      };
+
+      window.deleteSession = function (id) {
+        fetch('/api/sessions/' + id, { method: 'DELETE' }).then(function (res) {
+          if (res.ok) loadSessions();
+        }).catch(function () {});
+      };
+
+      document.getElementById('btn-create-session').addEventListener('click', function () {
+        fetch('/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        }).then(function (res) {
+          if (res.ok) loadSessions();
+        }).catch(function () {});
+      });
+
+      // ── Chat ────────────────────────────────────────────────
+      function loadChatSessions() {
+        fetchJSON('/api/sessions').then(function (sessions) {
+          var select = document.getElementById('chat-session-select');
+          var currentVal = select.value;
+          select.innerHTML = '<option value="">-- Select a session --</option>';
+          for (var i = 0; i < sessions.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = sessions[i].id;
+            opt.textContent = sessions[i].name + ' (' + sessions[i].messageCount + ' msgs)';
+            select.appendChild(opt);
+          }
+          if (currentVal) select.value = currentVal;
+        }).catch(function () {});
+      }
+
+      document.getElementById('chat-session-select').addEventListener('change', function () {
+        var id = this.value;
+        currentChatSessionId = id;
+        if (!id) {
+          document.getElementById('chat-messages').innerHTML =
+            '<div class="empty-state"><div class="icon">&#128172;</div>' +
+            '<p>Select or create a session to start chatting</p></div>';
+          return;
+        }
+        loadChatMessages(id);
+      });
+
+      function loadChatMessages(sessionId) {
+        fetchJSON('/api/sessions/' + sessionId).then(function (data) {
+          renderChatMessages(data.messages || []);
+        }).catch(function () {});
+      }
+
+      function renderChatMessages(messages) {
+        var container = document.getElementById('chat-messages');
+        if (!messages || messages.length === 0) {
+          container.innerHTML =
+            '<div class="empty-state"><div class="icon">&#128172;</div>' +
+            '<p>No messages yet. Start the conversation!</p></div>';
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < messages.length; i++) {
+          var m = messages[i];
+          html +=
+            '<div class="chat-msg">' +
+              '<div class="chat-msg-role ' + m.role + '">' + escapeHtml(m.role) + '</div>' +
+              '<div>' +
+                '<div class="chat-msg-content">' + escapeHtml(m.content) + '</div>' +
+                '<div class="chat-msg-time">' + escapeHtml(formatTime(m.timestamp)) + '</div>' +
+              '</div>' +
+            '</div>';
+        }
+        container.innerHTML = html;
+        container.scrollTop = container.scrollHeight;
+      }
+
+      document.getElementById('btn-new-session').addEventListener('click', function () {
+        fetch('/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({})
+        }).then(function (res) {
+          return res.json();
+        }).then(function (session) {
+          loadChatSessions();
+          currentChatSessionId = session.id;
+          var select = document.getElementById('chat-session-select');
+          select.value = session.id;
+          document.getElementById('chat-messages').innerHTML =
+            '<div class="empty-state"><div class="icon">&#128172;</div>' +
+            '<p>No messages yet. Start the conversation!</p></div>';
+        }).catch(function () {});
+      });
+
+      document.getElementById('btn-send').addEventListener('click', function () {
+        var input = document.getElementById('chat-input');
+        var content = input.value.trim();
+        if (!content || !currentChatSessionId) return;
+
+        fetch('/api/sessions/' + currentChatSessionId + '/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'user', content: content })
+        }).then(function (res) {
+          if (res.ok) {
+            input.value = '';
+            loadChatMessages(currentChatSessionId);
+          }
+        }).catch(function () {});
+      });
+
+      document.getElementById('chat-input').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById('btn-send').click();
+        }
+      });
+
+      // ── Providers ───────────────────────────────────────────
+      function loadProviders() {
+        fetchJSON('/api/providers').then(function (providers) {
+          renderProvidersTable(providers);
+        }).catch(function () {});
+      }
+
+      function renderProvidersTable(providers) {
+        var tbody = document.getElementById('providers-tbody');
+
+        if (!providers || providers.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="5"><div class="empty-state">' +
+            '<div class="icon">&#9881;</div>' +
+            '<p>No providers configured</p></div></td></tr>';
+          return;
+        }
+
+        var html = '';
+        for (var i = 0; i < providers.length; i++) {
+          var p = providers[i];
+          var modelsStr = p.models.length > 0 ? p.models.join(', ') : '-';
+          var statusClass = p.enabled ? 'status-enabled' : 'status-disabled';
+          var statusText = p.enabled ? 'Enabled' : 'Disabled';
+
+          html +=
+            '<tr>' +
+            '<td>' + escapeHtml(p.name) + '</td>' +
+            '<td class="mono">' + escapeHtml(p.type) + '</td>' +
+            '<td class="mono" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escapeHtml(modelsStr) + '">' + escapeHtml(modelsStr) + '</td>' +
+            '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>' +
+            '<td class="actions-cell">' +
+              '<button class="btn btn-sm" onclick="testProvider(\'' + p.id + '\')">Test</button>' +
+              '<button class="btn btn-sm btn-danger" onclick="deleteProvider(\'' + p.id + '\')">Delete</button>' +
+            '</td>' +
+            '</tr>';
+        }
+        tbody.innerHTML = html;
+      }
+
+      window.testProvider = function (id) {
+        var resultEl = document.getElementById('provider-test-result');
+        resultEl.className = 'test-result visible';
+        resultEl.textContent = 'Testing...';
+
+        fetch('/api/providers/' + id + '/test', { method: 'POST' })
+          .then(function (res) { return res.json(); })
+          .then(function (result) {
+            if (result.success) {
+              resultEl.className = 'test-result visible success';
+              resultEl.textContent = 'Connection successful! Latency: ' + result.latencyMs + 'ms';
+            } else {
+              resultEl.className = 'test-result visible error';
+              resultEl.textContent = 'Connection failed: ' + (result.error || 'Unknown error');
+            }
+          })
+          .catch(function () {
+            resultEl.className = 'test-result visible error';
+            resultEl.textContent = 'Test request failed';
+          });
+      };
+
+      window.deleteProvider = function (id) {
+        fetch('/api/providers/' + id, { method: 'DELETE' }).then(function (res) {
+          if (res.ok) loadProviders();
+        }).catch(function () {});
+      };
+
+      // ── Provider Form Modal ─────────────────────────────────
+      var formOverlay = document.getElementById('provider-form-overlay');
+
+      document.getElementById('btn-add-provider').addEventListener('click', function () {
+        formOverlay.classList.add('visible');
+        document.getElementById('provider-name').value = '';
+        document.getElementById('provider-apikey').value = '';
+        document.getElementById('provider-baseurl').value = '';
+      });
+
+      document.getElementById('btn-cancel-provider').addEventListener('click', function () {
+        formOverlay.classList.remove('visible');
+      });
+
+      formOverlay.addEventListener('click', function (e) {
+        if (e.target === formOverlay) formOverlay.classList.remove('visible');
+      });
+
+      document.getElementById('btn-save-provider').addEventListener('click', function () {
+        var type = document.getElementById('provider-type').value;
+        var name = document.getElementById('provider-name').value.trim();
+        var apiKey = document.getElementById('provider-apikey').value.trim();
+        var baseUrl = document.getElementById('provider-baseurl').value.trim();
+
+        if (!name) {
+          alert('Provider name is required');
+          return;
+        }
+
+        var body = { type: type, name: name };
+        if (apiKey) body.apiKey = apiKey;
+        if (baseUrl) body.baseUrl = baseUrl;
+
+        fetch('/api/providers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }).then(function (res) {
+          if (res.ok) {
+            formOverlay.classList.remove('visible');
+            loadProviders();
+          }
+        }).catch(function () {});
+      });
+
+      // ── Init ────────────────────────────────────────────────
+      updateDashboard();
+      setInterval(updateDashboard, 5000);
+    })();
+  </script>
+</body>
+</html>

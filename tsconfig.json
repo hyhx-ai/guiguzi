@@ -1,0 +1,13 @@
+{
+  "references": [
+    { "path": "packages/nova-ai" },
+    { "path": "packages/nova-router" },
+    { "path": "packages/nova-agent-core" },
+    { "path": "packages/nova-cli" },
+    { "path": "packages/nova-tui" },
+    { "path": "packages/nova-gateway" },
+    { "path": "packages/nova-web" },
+    { "path": "packages/nova-sdk" }
+  ],
+  "files": []
+}

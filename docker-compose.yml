@@ -1,0 +1,74 @@
+# NovaClaw Docker Compose
+# Gateway + Ollama (local AI) stack
+#
+# Usage:
+#   cp .env.example .env   # Fill in API keys
+#   docker compose up -d
+
+services:
+  # ─── NovaClaw Gateway ───
+  gateway:
+    build: .
+    container_name: novaclaw-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-18789}:18789"
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - gateway-data:/var/lib/novaclaw
+      - gateway-logs:/var/log/novaclaw
+    depends_on:
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:18789/health').then(r=>r.ok?process.exit(0):process.exit(1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ─── Ollama (Local AI) ───
+  ollama:
+    image: ollama/ollama:latest
+    container_name: novaclaw-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    # Uncomment for GPU support (NVIDIA):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  # ─── Ollama Model Puller (one-shot) ───
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: novaclaw-ollama-pull
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Pulling default models..."
+        ollama pull llama3
+        ollama pull qwen2.5-coder
+        echo "Models ready."
+    restart: "no"
+
+volumes:
+  gateway-data:
+  gateway-logs:
+  ollama-data:

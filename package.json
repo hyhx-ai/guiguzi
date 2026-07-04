@@ -1,0 +1,22 @@
+{
+  "name": "novaclaw",
+  "version": "0.1.0-alpha",
+  "private": true,
+  "description": "AI Coding Agent + Multi-Agent Platform with Intelligent Router",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "dev": "pnpm -r --parallel run dev",
+    "test": "pnpm -r run test",
+    "lint": "pnpm -r run lint",
+    "clean": "pnpm -r run clean",
+    "typecheck": "pnpm -r run typecheck"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "packageManager": "pnpm@11.9.0",
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}

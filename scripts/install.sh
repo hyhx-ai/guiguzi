@@ -43,6 +43,41 @@ detect_pkg_manager() {
   fi
 }
 
+# Ensure npm global bin is in PATH (e.g. /root/.npm-global/bin)
+ensure_npm_global_path() {
+  local npm_prefix
+  npm_prefix=$(npm config get prefix 2>/dev/null || echo "")
+
+  # If prefix is a user directory (not /usr), add its bin to PATH
+  if [ -n "$npm_prefix" ] && [ "$npm_prefix" != "/usr" ] && [ -d "$npm_prefix/bin" ]; then
+    if ! echo "$PATH" | grep -q "$npm_prefix/bin"; then
+      export PATH="$npm_prefix/bin:$PATH"
+    fi
+  fi
+
+  # Also ensure ~/.local/bin is in PATH (for wrapper scripts)
+  if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+    export PATH="$HOME/.local/bin:$PATH"
+  fi
+
+  # Persist both paths to shell rc
+  local shell_rc=""
+  if [ -n "${BASH_VERSION:-}" ]; then shell_rc="$HOME/.bashrc"
+  elif [ -n "${ZSH_VERSION:-}" ]; then shell_rc="$HOME/.zshrc"
+  fi
+
+  if [ -n "$shell_rc" ]; then
+    if [ -n "$npm_prefix" ] && [ "$npm_prefix" != "/usr" ] && [ -d "$npm_prefix/bin" ]; then
+      if ! grep -q "$npm_prefix/bin" "$shell_rc" 2>/dev/null; then
+        echo "export PATH=\"$npm_prefix/bin:\$PATH\"" >> "$shell_rc"
+      fi
+    fi
+    if ! grep -q ".local/bin" "$shell_rc" 2>/dev/null; then
+      echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$shell_rc"
+    fi
+  fi
+}
+
 # Check/install Node.js 22+
 ensure_node() {
   if command -v node &>/dev/null; then
@@ -150,34 +185,23 @@ install_guiguzi() {
 
   # Install pnpm and build
   if ! command -v pnpm &>/dev/null; then
+    info "Installing pnpm..."
     npm install -g pnpm
+    # Refresh PATH after pnpm install
+    ensure_npm_global_path
   fi
   pnpm install --frozen-lockfile
   pnpm build
 
-  # Create wrapper script
+  # Create wrapper script (use quoted heredoc to prevent $0 expansion)
   mkdir -p "$HOME/.local/bin"
-  cat > "$HOME/.local/bin/guiguzi" << GUIGUZI_WRAPPER
+  cat > "$HOME/.local/bin/guiguzi" << 'GUIGUZI_WRAPPER'
 #!/usr/bin/env bash
-SCRIPT_DIR="$(cd "\$(dirname "\$0")" && pwd)"
-GUIGUZI_ROOT="$src_dir/guiguzi"
-export NODE_PATH="\$GUIGUZI_ROOT/node_modules"
-exec node "\$GUIGUZI_ROOT/packages/nova-cli/dist/index.js" "\$@"
+GUIGUZI_ROOT="$HOME/.guiguzi/src/guiguzi"
+export NODE_PATH="$GUIGUZI_ROOT/node_modules"
+exec node "$GUIGUZI_ROOT/packages/nova-cli/dist/index.js" "$@"
 GUIGUZI_WRAPPER
   chmod +x "$HOME/.local/bin/guiguzi"
-
-  # Add to PATH if needed
-  if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
-    export PATH="$HOME/.local/bin:$PATH"
-    local shell_rc=""
-    if [ -n "${BASH_VERSION:-}" ]; then shell_rc="$HOME/.bashrc"
-    elif [ -n "${ZSH_VERSION:-}" ]; then shell_rc="$HOME/.zshrc"
-    fi
-    if [ -n "$shell_rc" ] && ! grep -q ".local/bin" "$shell_rc" 2>/dev/null; then
-      echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$shell_rc"
-      ok "Added ~/.local/bin to PATH in $shell_rc"
-    fi
-  fi
 
   ok "Guiguzi installed from source at $src_dir/guiguzi"
 }
@@ -186,12 +210,20 @@ GUIGUZI_WRAPPER
 post_install() {
   info "Running post-install checks..."
 
+  # Reload shell config so PATH changes take effect immediately
+  if [ -f "$HOME/.bashrc" ]; then
+    # shellcheck disable=SC1091
+    . "$HOME/.bashrc" 2>/dev/null || true
+  fi
+
+  ensure_npm_global_path
+
   if command -v guiguzi &>/dev/null; then
     ok "guiguzi command available"
     guiguzi doctor 2>/dev/null || true
   else
-    warn "guiguzi command not found in PATH"
-    warn "You may need to restart your shell or add npm global bin to PATH"
+    warn "guiguzi command not found in current shell"
+    info "Run: source ~/.bashrc  (or open a new terminal)"
   fi
 }
 
@@ -209,12 +241,17 @@ main() {
 
   ensure_node
   ensure_git
+  ensure_npm_global_path
   install_guiguzi
   post_install
 
   echo ""
   ok "Installation complete!"
-  info "Run 'guiguzi onboard' to get started."
+  info "Next steps:"
+  info "  guiguzi onboard    - Interactive setup wizard"
+  info "  guiguzi models     - List available AI models"
+  info "  guiguzi console    - Start web UI (http://IP:3000)"
+  info "  guiguzi agent      - Start terminal coding agent"
   echo ""
 }
 
